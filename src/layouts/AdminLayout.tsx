@@ -18,10 +18,10 @@ export default function AdminLayout() {
     <div className="min-h-screen flex bg-canvas">
       <aside className="w-60 shrink-0 border-r border-line bg-white flex flex-col">
         <div className="h-16 flex items-center gap-3 px-5 border-b border-line">
-          <Seal size={28} />
+          <Seal size={30} />
           <div className="leading-tight">
-            <div className="text-[13px] font-semibold tracking-tight">Bulan Procurement</div>
-            <div className="text-[11px] text-ink/50">Admin Console</div>
+            <div className="text-[13px] font-semibold tracking-tight">LIGA Bulan</div>
+            <div className="text-[11px] text-ink/50">Document Engine Manager</div>
           </div>
         </div>
         <nav className="flex-1 py-4">

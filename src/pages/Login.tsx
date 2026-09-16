@@ -47,11 +47,11 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-paper px-4">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <Seal size={48} />
+          <Seal size={56} />
           <h1 className="mt-4 text-[19px] font-semibold text-center leading-snug">
-            Procurement Form
+            LIGA Bulan
             <br />
-            Management System
+            Document Engine Manager
           </h1>
           <p className="mt-1.5 text-[13px] text-ink/55">Municipality of Bulan, Sorsogon</p>
         </div>

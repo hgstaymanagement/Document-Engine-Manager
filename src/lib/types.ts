@@ -1,4 +1,4 @@
-// Core domain types for the Procurement Form Management System
+// Core domain types for LIGA Bulan Document Engine Manager
 // Mirrors the MVP spec: Barangays/Officials (Airtable), Clients, Access,
 // Forms (versioned document schema), Submissions (JSON payload).
 

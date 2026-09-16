@@ -16,10 +16,10 @@ export default function ClientLayout() {
     <div className="min-h-screen bg-canvas">
       <header className="h-16 border-b border-line bg-white flex items-center px-6 gap-8">
         <div className="flex items-center gap-3">
-          <Seal size={26} />
+          <Seal size={30} />
           <div className="leading-tight">
-            <div className="text-[13px] font-semibold tracking-tight">Bulan Procurement</div>
-            <div className="text-[11px] text-ink/50">Barangay Client Portal</div>
+            <div className="text-[13px] font-semibold tracking-tight">LIGA Bulan</div>
+            <div className="text-[11px] text-ink/50">Document Engine Manager</div>
           </div>
         </div>
         <nav className="flex items-center gap-1">
