@@ -1,6 +1,7 @@
 import { FIELDS } from './airtableConfig'
 import type { AirtableRecord } from './airtableClient'
 import type { Barangay, Official, Client, ProcurementForm, FormVersion, Submission } from './types'
+import { generateId } from './uniqueId'
 
 const F = FIELDS
 
@@ -62,9 +63,34 @@ export function mapFormVersion(rec: AirtableRecord<Record<string, unknown>>): Ra
         orientation: (rec.fields[F.formVersions.orientation] as FormVersion['page']['orientation']) ?? 'portrait',
         margins,
       },
-      elements,
+      elements: dedupeElementIds(elements),
     },
   }
+}
+
+/**
+ * Repairs data from before the element-id generator was fixed: a reset
+ * counter (instead of a collision-resistant id) could hand out an id that
+ * an earlier session had already saved for a real element, so a form's
+ * saved elements may contain two entries sharing one id. That's silent
+ * corruption — both entries look like separate elements in the builder,
+ * but any edit or lookup keyed by id (which is most of the builder) treats
+ * them as one, so editing "the new one" could as easily edit the old one,
+ * and React's list rendering (keyed by this same id) can't tell them apart
+ * either. Runs on every load so already-saved duplicates get healed in
+ * memory immediately, even before the next edit persists the fix back.
+ */
+function dedupeElementIds(elements: FormVersion['elements']): FormVersion['elements'] {
+  const seen = new Set<string>()
+  return elements.map(el => {
+    if (!seen.has(el.id)) {
+      seen.add(el.id)
+      return el
+    }
+    const newId = generateId('el')
+    seen.add(newId)
+    return { ...el, id: newId }
+  })
 }
 
 /** Assemble Form records + their Form Version records into full ProcurementForm objects. */

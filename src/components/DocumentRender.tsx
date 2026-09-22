@@ -1,6 +1,7 @@
 import type { FormElement, FormVersion } from '../lib/types'
 import { getPageGeometry, ROW_H } from '../lib/pageGeometry'
-import { textAndParagraphCss } from '../lib/textStyle'
+import { textAndParagraphCss, textStyleToCss, DEFAULT_BLANK_STYLE } from '../lib/textStyle'
+import { splitTokensIntoParagraphs } from '../lib/dynamicTextParagraphs'
 import { sumColumn, formatSum } from '../lib/formula'
 import { borderClass } from '../pages/builder/FormBuilder'
 
@@ -75,13 +76,29 @@ function FilledContent({ el, data, rows }: { el: FormElement; data: RenderData; 
         </h3>
       )
     case 'dynamic_text':
+    case 'rich_text': {
+      const paragraphs = splitTokensIntoParagraphs(el.tokens)
       return (
-        <p className="text-[12.5px]" style={textAndParagraphCss(el.paragraphStyle, el.textStyle)} lang="en">
-          {el.tokens?.map((t, i) =>
-            t.type === 'text' ? <span key={i}>{t.value}</span> : <span key={i}>{data[t.fieldId ?? ''] ?? `{{${t.fieldId}}}`}</span>
-          )}
-        </p>
+        <div>
+          {paragraphs.map((tokens, pi) => (
+            <p key={pi} className="text-[12.5px]" style={textAndParagraphCss(el.paragraphStyle, el.textStyle)} lang="en">
+              {tokens.map((t, i) => {
+                if (t.type === 'text') return <span key={i}>{t.value}</span>
+                if (t.type === 'blank') {
+                  const value = data[t.blankId ?? '']
+                  return (
+                    <span key={i} className="px-1" style={textStyleToCss(el.blankStyles?.[t.blankId ?? ''] ?? DEFAULT_BLANK_STYLE)}>
+                      {value != null && value !== '' ? String(value) : '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0'}
+                    </span>
+                  )
+                }
+                return <span key={i}>{data[t.fieldId ?? ''] ?? `{{${t.fieldId}}}`}</span>
+              })}
+            </p>
+          ))}
+        </div>
       )
+    }
     case 'table': {
       const cols = el.columns ?? []
       const dataRows = rows && rows.length ? rows : []

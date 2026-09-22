@@ -24,6 +24,18 @@ export const DEFAULT_TEXT_STYLE: TextStyle = {
   fontSize: 13,
 }
 
+// Unlike regular text, a fillable blank always needs *some* visual cue that
+// it's a blank — so unlike DEFAULT_TEXT_STYLE above, this one IS applied
+// automatically when a blank has no explicit style yet. Underlined is the
+// standard "fill in the blank" convention; bold/italic/strikethrough stay
+// off by default but are just as toggleable per blank as they are for any
+// other text.
+export const DEFAULT_BLANK_STYLE: TextStyle = {
+  fontFamily: 'source-serif',
+  fontSize: 13,
+  underline: true,
+}
+
 export function fontCssFor(fontFamily: string): string {
   return FONT_FAMILIES.find(f => f.value === fontFamily)?.css ?? FONT_FAMILIES[0].css
 }

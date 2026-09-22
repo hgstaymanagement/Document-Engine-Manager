@@ -44,6 +44,7 @@ export type FieldType =
   | 'static_text'
   | 'section_heading'
   | 'dynamic_text'
+  | 'rich_text'
   | 'image'
   | 'page_break'
   | 'table'
@@ -66,9 +67,11 @@ export interface BorderStyle {
 }
 
 export interface DynamicTextToken {
-  type: 'text' | 'field'
-  value?: string
-  fieldId?: string
+  type: 'text' | 'field' | 'blank'
+  value?: string // for 'text'
+  fieldId?: string // for 'field' — a database field or another element's id
+  blankId?: string // for 'blank' — the key its fillable value is stored under
+  blankLabel?: string // for 'blank' — shown in the fill-form sidebar and as an in-place placeholder
 }
 
 export type TableColumnType = 'short_text' | 'number' | 'currency' | 'date' | 'dropdown' | 'checkbox' | 'calculated'
@@ -116,9 +119,10 @@ export interface FormElement {
   options?: string[] // dropdown/radio
   databaseField?: string // e.g. 'punong_barangay'
   formula?: string // for calculated fields
-  tokens?: DynamicTextToken[] // for dynamic_text
-  paragraphStyle?: ParagraphStyle // for dynamic_text, static_text, section_heading
-  textStyle?: TextStyle // font family/size — for dynamic_text, static_text, section_heading
+  tokens?: DynamicTextToken[] // for dynamic_text, rich_text
+  blankStyles?: Record<string, TextStyle> // per-blank font style (bold/italic/underline), keyed by blankId
+  paragraphStyle?: ParagraphStyle // for dynamic_text, rich_text, static_text, section_heading
+  textStyle?: TextStyle // font family/size — for dynamic_text, rich_text, static_text, section_heading
   border?: BorderStyle
   columns?: TableColumn[] // for table type — each column is its own basic-input field
   placeholder?: string

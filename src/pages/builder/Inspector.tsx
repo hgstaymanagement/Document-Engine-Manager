@@ -1,7 +1,9 @@
-import { useState } from 'react'
-import type { BorderPreset, FormElement, ParagraphStyle, TableColumn, TableColumnType, TextStyle } from '../../lib/types'
+import { useRef, useState } from 'react'
+import type { BorderPreset, FormElement, ParagraphStyle, TableColumn, TableColumnType, TextStyle, DynamicTextToken } from '../../lib/types'
 import { DEFAULT_PARAGRAPH_STYLE } from '../../lib/paragraphStyle'
-import { DEFAULT_TEXT_STYLE, FONT_FAMILIES } from '../../lib/textStyle'
+import { DEFAULT_TEXT_STYLE, DEFAULT_BLANK_STYLE, FONT_FAMILIES } from '../../lib/textStyle'
+import { DATABASE_FIELDS } from '../../lib/databaseFields'
+import { generateId } from '../../lib/uniqueId'
 import { Button, Field, inputCls } from '../../components/ui'
 
 const BORDER_PRESETS: { value: BorderPreset; label: string }[] = [
@@ -27,10 +29,12 @@ const TABLE_COLUMN_TYPES: { value: TableColumnType; label: string }[] = [
 
 export default function Inspector({
   element,
+  fillableFields = [],
   onChange,
   onDelete,
 }: {
   element: FormElement
+  fillableFields?: FormElement[]
   onChange: (patch: Partial<FormElement>) => void
   onDelete: () => void
 }) {
@@ -67,11 +71,11 @@ export default function Inspector({
             value={element.databaseField ?? ''}
             onChange={e => onChange({ databaseField: e.target.value })}
           >
-            <option value="barangay_name">Barangay Name</option>
-            <option value="punong_barangay">Punong Barangay</option>
-            <option value="treasurer">Treasurer</option>
-            <option value="secretary">Secretary</option>
-            <option value="kagawad">Kagawad</option>
+            {DATABASE_FIELDS.map(f => (
+              <option key={f.value} value={f.value}>
+                {f.label}
+              </option>
+            ))}
           </select>
         </Field>
       )}
@@ -97,17 +101,28 @@ export default function Inspector({
         </Field>
       )}
 
-      {element.type === 'dynamic_text' && (
-        <Field label="Text template" hint="Use {{field_id}} to insert a field value.">
-          <textarea
-            className={`${inputCls} h-28 font-mono text-[12px]`}
-            defaultValue={tokensToTemplate(element.tokens)}
-            onBlur={e => onChange({ tokens: templateToTokens(e.target.value) })}
-          />
-        </Field>
+      {(element.type === 'dynamic_text' || element.type === 'rich_text') && (
+        <DynamicTextEditor
+          // Forces a fresh component instance (and therefore a fresh
+          // textarea) whenever the selected element changes. The textarea
+          // below is intentionally uncontrolled (defaultValue + onBlur, so
+          // clicking a placeholder button can splice text in at the cursor
+          // without fighting a controlled value on every keystroke) — but
+          // an uncontrolled input's defaultValue is only ever applied once,
+          // at mount. Without this key, switching from one Dynamic Text
+          // element to another re-used the same mounted textarea, so it
+          // kept showing (and would save back) the PREVIOUS element's text
+          // instead of the newly selected one's.
+          key={element.id}
+          tokens={element.tokens}
+          blankStyles={element.blankStyles}
+          fillableFields={fillableFields}
+          allowBlanks={element.type === 'rich_text'}
+          onChange={onChange}
+        />
       )}
 
-      {(element.type === 'dynamic_text' || element.type === 'static_text' || element.type === 'section_heading') && (
+      {(element.type === 'dynamic_text' || element.type === 'static_text' || element.type === 'section_heading' || element.type === 'rich_text') && (
         <>
           <FontStyleEditor
             style={element.textStyle}
@@ -186,15 +201,181 @@ export default function Inspector({
 
 function tokensToTemplate(tokens?: FormElement['tokens']) {
   if (!tokens) return ''
-  return tokens.map(t => (t.type === 'text' ? t.value : `{{${t.fieldId}}}`)).join('')
+  return tokens
+    .map(t => {
+      if (t.type === 'field') return `{{${t.fieldId}}}`
+      if (t.type === 'blank') return `[[${t.blankId}::${t.blankLabel ?? ''}]]`
+      return t.value
+    })
+    .join('')
 }
 
-function templateToTokens(template: string): FormElement['tokens'] {
-  const parts = template.split(/(\{\{[a-zA-Z0-9_]+\}\})/g).filter(Boolean)
+function templateToTokens(template: string): DynamicTextToken[] {
+  // {{field_id}} references a database/other-form field; [[blank_id::Label]]
+  // is a fillable blank embedded right in the paragraph — the client types
+  // into it from the fill-form sidebar and the value substitutes back in
+  // at this exact spot.
+  const parts = template.split(/(\{\{[a-zA-Z0-9_-]+\}\}|\[\[[a-zA-Z0-9_-]+::[^\]]*\]\])/g).filter(Boolean)
   return parts.map(p => {
-    const m = p.match(/^\{\{([a-zA-Z0-9_]+)\}\}$/)
-    return m ? { type: 'field' as const, fieldId: m[1] } : { type: 'text' as const, value: p }
+    const field = p.match(/^\{\{([a-zA-Z0-9_-]+)\}\}$/)
+    if (field) return { type: 'field' as const, fieldId: field[1] }
+    const blank = p.match(/^\[\[([a-zA-Z0-9_-]+)::([^\]]*)\]\]$/)
+    if (blank) return { type: 'blank' as const, blankId: blank[1], blankLabel: blank[2] }
+    return { type: 'text' as const, value: p }
   })
+}
+
+function DynamicTextEditor({
+  tokens,
+  blankStyles,
+  fillableFields,
+  allowBlanks,
+  onChange,
+}: {
+  tokens: DynamicTextToken[] | undefined
+  blankStyles: Record<string, TextStyle> | undefined
+  fillableFields: FormElement[]
+  allowBlanks: boolean
+  onChange: (patch: Partial<FormElement>) => void
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  function insertMarker(marker: string) {
+    const el = textareaRef.current
+    if (!el) return
+    const start = el.selectionStart ?? el.value.length
+    const end = el.selectionEnd ?? el.value.length
+    const newValue = el.value.slice(0, start) + marker + el.value.slice(end)
+    el.value = newValue
+    onChange({ tokens: templateToTokens(newValue) })
+    // Put the cursor right after what was just inserted, so the person can
+    // keep typing without having to click back into the textarea.
+    const cursor = start + marker.length
+    requestAnimationFrame(() => {
+      el.focus()
+      el.setSelectionRange(cursor, cursor)
+    })
+  }
+
+  function insertField(fieldValue: string) {
+    insertMarker(`{{${fieldValue}}}`)
+  }
+
+  function insertBlank() {
+    const label = window.prompt('Label for this blank (shown to whoever fills out the form):')
+    if (!label || !label.trim()) return
+    const blankId = generateId('blank')
+    insertMarker(`[[${blankId}::${label.trim()}]]`)
+    // Seed a default style (underlined, matching the usual "fill in the
+    // blank" convention) so it's visibly a blank from the moment it's
+    // created, while still being fully adjustable per blank afterward.
+    onChange({ blankStyles: { ...blankStyles, [blankId]: { ...DEFAULT_BLANK_STYLE } } })
+  }
+
+  function toggleBlankStyle(blankId: string, key: 'bold' | 'italic' | 'underline') {
+    const current = blankStyles?.[blankId] ?? DEFAULT_BLANK_STYLE
+    onChange({ blankStyles: { ...blankStyles, [blankId]: { ...current, [key]: !current[key] } } })
+  }
+
+  return (
+    <Field
+      label="Text template"
+      hint={
+        allowBlanks
+          ? 'Use {{field_id}} for a field value, or click a field/blank below to insert it.'
+          : 'Use {{field_id}} to insert a field value, or click a field below to insert it.'
+      }
+    >
+      <textarea
+        ref={textareaRef}
+        className={`${inputCls} h-28 font-mono text-[12px]`}
+        defaultValue={tokensToTemplate(tokens)}
+        onBlur={e => onChange({ tokens: templateToTokens(e.target.value) })}
+      />
+      {allowBlanks && (
+        <div>
+          <span className="block text-[10.5px] text-ink/40 mt-2 mb-1">Fillable blanks</span>
+          <div className="space-y-1.5">
+            {(tokens ?? [])
+              .filter(t => t.type === 'blank')
+              .map(t => {
+                const style = (t.blankId ? blankStyles?.[t.blankId] : undefined) ?? DEFAULT_BLANK_STYLE
+                return (
+                  <div
+                    key={t.blankId}
+                    className="flex items-center gap-2 px-2 py-1 rounded-sm2 border border-bottle-600/30 bg-bottle-50"
+                  >
+                    <span className="text-[11px] text-bottle-700 flex-1 truncate">{t.blankLabel}</span>
+                    {(['bold', 'italic', 'underline'] as const).map(key => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => t.blankId && toggleBlankStyle(t.blankId, key)}
+                        title={key[0].toUpperCase() + key.slice(1)}
+                        className={`w-5 h-5 shrink-0 rounded-sm2 text-[11px] flex items-center justify-center transition-colors ${
+                          style[key]
+                            ? 'bg-bottle-600 text-white'
+                            : 'bg-white text-ink/40 border border-line2 hover:border-bottle-600'
+                        } ${key === 'bold' ? 'font-bold' : key === 'italic' ? 'italic' : 'underline'}`}
+                      >
+                        {key === 'bold' ? 'B' : key === 'italic' ? 'I' : 'U'}
+                      </button>
+                    ))}
+                  </div>
+                )
+              })}
+            <Button variant="secondary" className="py-1" onClick={insertBlank}>
+              + Add blank
+            </Button>
+          </div>
+          <p className="mt-1 text-[10.5px] text-ink/35">
+            Each blank shows up as its own input in the fill-form sidebar, and whatever's typed
+            substitutes back into the paragraph right where you placed it. B/I/U are optional per blank.
+          </p>
+        </div>
+      )}
+      <div>
+        <span className="block text-[10.5px] text-ink/40 mt-3 mb-1">Database fields</span>
+        <div className="flex flex-wrap gap-1.5">
+          {DATABASE_FIELDS.map(f => (
+            <button
+              key={f.value}
+              type="button"
+              onClick={() => insertField(f.value)}
+              title={`Insert {{${f.value}}}`}
+              className="focus-ring text-[11px] font-mono px-2 py-1 rounded-sm2 border border-line2 bg-paper hover:border-bottle-600 hover:bg-bottle-50 hover:text-bottle-700 transition-colors"
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <span className="block text-[10.5px] text-ink/40 mt-3 mb-1">
+          This form's fields{fillableFields.length === 0 && ' (none on page 1 yet)'}
+        </span>
+        {fillableFields.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5">
+            {fillableFields.map(f => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => insertField(f.id)}
+                title={`Insert {{${f.id}}}`}
+                className="focus-ring text-[11px] px-2 py-1 rounded-sm2 border border-line2 bg-paper hover:border-bottle-600 hover:bg-bottle-50 hover:text-bottle-700 transition-colors"
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[11px] text-ink/35">
+            Add an input field to page 1 (like Purpose or PR No.) and it'll show up here.
+          </p>
+        )}
+      </div>
+    </Field>
+  )
 }
 
 function TableColumnsEditor({
@@ -225,7 +406,7 @@ function TableColumnsEditor({
   function addColumn() {
     onChange([
       ...columns,
-      { id: `c${Date.now()}`, label: 'New Column', width: 3, type: 'short_text' },
+      { id: generateId('c'), label: 'New Column', width: 3, type: 'short_text' },
     ])
   }
 

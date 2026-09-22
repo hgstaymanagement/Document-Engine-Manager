@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import type { FormElement, FieldType, FormVersion, BorderPreset } from '../../lib/types'
 import { getPageGeometry, resolveCollision, clampToGrid } from '../../lib/pageGeometry'
 import { DEFAULT_PARAGRAPH_STYLE } from '../../lib/paragraphStyle'
+import { getFillableInputElements } from '../../lib/formFields'
+import { generateId } from '../../lib/uniqueId'
 import { useAirtableData } from '../../lib/airtableStore'
 import { Button, StatusPill } from '../../components/ui'
 import DocCanvas from './DocCanvas'
@@ -38,6 +40,7 @@ const PALETTE: { group: string; items: { type: FieldType; label: string }[] }[] 
       { type: 'static_text', label: 'Static Text' },
       { type: 'section_heading', label: 'Section Heading' },
       { type: 'dynamic_text', label: 'Dynamic Text' },
+      { type: 'rich_text', label: 'Rich Text (with fillable blanks)' },
       { type: 'signature', label: 'Signature' },
       { type: 'printed_name', label: 'Printed Name' },
       { type: 'position', label: 'Position' },
@@ -48,8 +51,6 @@ const PALETTE: { group: string; items: { type: FieldType; label: string }[] }[] 
     ],
   },
 ]
-
-let idCounter = 100
 
 export default function FormBuilder() {
   const { formId } = useParams()
@@ -106,8 +107,8 @@ export default function FormBuilder() {
   function addElement(type: FieldType, label: string) {
     const maxY = Math.max(0, ...elements.map(e => e.y + e.h))
     const isDb = label.includes('(database)')
-    const w = type === 'section_heading' || type === 'static_text' || type === 'table' || type === 'dynamic_text' ? 12 : 6
-    const h = type === 'table' ? 4 : type === 'dynamic_text' ? 2 : 1
+    const w = type === 'section_heading' || type === 'static_text' || type === 'table' || type === 'dynamic_text' || type === 'rich_text' ? 12 : 6
+    const h = type === 'table' ? 4 : type === 'dynamic_text' || type === 'rich_text' ? 2 : 1
     const { maxRows } = getPageGeometry(version.page)
     const placement = resolveCollision(
       { x: 0, y: maxY, w, h },
@@ -115,7 +116,7 @@ export default function FormBuilder() {
       maxRows
     )
     const el: FormElement = {
-      id: `el-${idCounter++}`,
+      id: generateId('el'),
       type,
       label: label.replace(' (database)', ''),
       source: isDb ? 'database' : type === 'dynamic_text' ? 'dynamic_text' : 'input',
@@ -134,9 +135,14 @@ export default function FormBuilder() {
               { id: 'c3', label: 'Amount', width: 4, type: 'currency', paragraphStyle: { ...DEFAULT_PARAGRAPH_STYLE, align: 'right' } },
             ]
           : undefined,
-      tokens: type === 'dynamic_text' ? [{ type: 'text', value: 'Enter dynamic text…' }] : undefined,
+      tokens:
+        type === 'dynamic_text'
+          ? [{ type: 'text', value: 'Enter dynamic text…' }]
+          : type === 'rich_text'
+            ? [{ type: 'text', value: 'Enter text, then use "+ Add blank" to embed a fillable field…' }]
+            : undefined,
       paragraphStyle:
-        type === 'dynamic_text' || type === 'static_text'
+        type === 'dynamic_text' || type === 'rich_text' || type === 'static_text'
           ? { ...DEFAULT_PARAGRAPH_STYLE }
           : type === 'section_heading'
             ? { ...DEFAULT_PARAGRAPH_STYLE, align: 'center' } // headings default to centered, matching prior behavior
@@ -280,7 +286,12 @@ export default function FormBuilder() {
         {/* Inspector */}
         <aside className="w-80 shrink-0 border-l border-line bg-white overflow-y-auto p-5">
           {selected ? (
-            <Inspector element={selected} onChange={patch => updateElement(selected.id, patch)} onDelete={() => deleteElement(selected.id)} />
+            <Inspector
+              element={selected}
+              fillableFields={getFillableInputElements(version.elements).filter(e => e.id !== selected.id)}
+              onChange={patch => updateElement(selected.id, patch)}
+              onDelete={() => deleteElement(selected.id)}
+            />
           ) : (
             <div className="text-[12.5px] text-ink/40 pt-4">
               Select an element on the canvas to edit its properties, or add one from the palette on the left.

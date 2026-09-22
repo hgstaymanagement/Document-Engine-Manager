@@ -21,6 +21,13 @@ export function paragraphStyleToCss(style: ParagraphStyle | undefined): CSSPrope
     textAlign: s.align,
     textIndent: s.indent,
     lineHeight: s.lineHeight,
+    // Preserve line breaks the person actually typed (e.g. separating
+    // paragraphs in the Dynamic Text template). The browser's default
+    // white-space (normal) collapses \n into a single space, which is why
+    // typed paragraphing was rendering as one continuous run regardless of
+    // how the text was broken up. pre-line keeps intentional line breaks
+    // while still collapsing redundant runs of spaces and wrapping normally.
+    whiteSpace: 'pre-line',
   }
   if (s.hyphenate) {
     css.hyphens = 'auto'

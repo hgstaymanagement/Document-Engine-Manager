@@ -5,6 +5,7 @@ import { useAuth } from '../lib/auth'
 import type { FormElement, Submission, TableColumn } from '../lib/types'
 import DocumentRender, { type RenderData } from '../components/DocumentRender'
 import { recomputeRow, sumColumn, formatSum } from '../lib/formula'
+import { getFillableInputElements, getBlankFields } from '../lib/formFields'
 import { textStyleToCss } from '../lib/textStyle'
 import { Button, Field, inputCls, StatusPill } from '../components/ui'
 
@@ -54,13 +55,16 @@ export default function SubmissionEditor({ mode }: { mode: 'client' | 'admin' })
     [barangayId, officialSnapshotForRender, values, barangayName]
   )
 
-  const inputElements = version.elements.filter(
-    e => e.page === 1 && (e.source === 'input' || e.type === 'checkbox') && e.type !== 'table' && e.type !== 'static_text' && e.type !== 'section_heading'
-  )
+  const inputElements = getFillableInputElements(version.elements)
+  const blankFields = getBlankFields(version.elements)
   const tableElements = version.elements.filter(e => e.type === 'table')
 
   function setField(el: FormElement, v: string) {
     setValues(vals => ({ ...vals, [el.id]: v }))
+  }
+
+  function setBlankValue(blankId: string, v: string) {
+    setValues(vals => ({ ...vals, [blankId]: v }))
   }
 
   function addRow(tableId: string, columns: TableColumn[]) {
@@ -163,6 +167,16 @@ export default function SubmissionEditor({ mode }: { mode: 'client' | 'admin' })
           <div className="space-y-4">
             {inputElements.map(el => (
               <ElementInput key={el.id} el={el} value={values[el.id] ?? ''} onChange={v => setField(el, v)} />
+            ))}
+
+            {blankFields.map(b => (
+              <Field key={b.id} label={b.label}>
+                <input
+                  className={inputCls}
+                  value={values[b.id] ?? ''}
+                  onChange={e => setBlankValue(b.id, e.target.value)}
+                />
+              </Field>
             ))}
 
             {tableElements.map(tel => {

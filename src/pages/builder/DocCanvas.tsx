@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react'
 import type { FormElement, FormVersion } from '../../lib/types'
 import { getPageGeometry, ROW_H, COLS, resolveCollision } from '../../lib/pageGeometry'
-import { textAndParagraphCss } from '../../lib/textStyle'
+import { textAndParagraphCss, textStyleToCss, DEFAULT_BLANK_STYLE } from '../../lib/textStyle'
+import { splitTokensIntoParagraphs } from '../../lib/dynamicTextParagraphs'
 import { borderClass } from './FormBuilder'
 
 export default function DocCanvas({
@@ -203,19 +204,35 @@ function ElementContent({ el }: { el: FormElement }) {
         </h3>
       )
     case 'dynamic_text':
+    case 'rich_text': {
+      const paragraphs = splitTokensIntoParagraphs(el.tokens)
       return (
-        <p className="text-[12.5px] text-ink/80" style={textAndParagraphCss(el.paragraphStyle, el.textStyle)} lang="en">
-          {el.tokens?.map((t, i) =>
-            t.type === 'text' ? (
-              <span key={i}>{t.value}</span>
-            ) : (
-              <span key={i} className="font-medium text-bottle-700">
-                {`{{${t.fieldId}}}`}
-              </span>
-            )
-          )}
-        </p>
+        <div>
+          {paragraphs.map((tokens, pi) => (
+            <p key={pi} className="text-[12.5px] text-ink/80" style={textAndParagraphCss(el.paragraphStyle, el.textStyle)} lang="en">
+              {tokens.map((t, i) => {
+                if (t.type === 'text') return <span key={i}>{t.value}</span>
+                if (t.type === 'blank')
+                  return (
+                    <span
+                      key={i}
+                      className="mx-0.5 px-1.5 text-bottle-700"
+                      style={textStyleToCss(el.blankStyles?.[t.blankId ?? ''] ?? DEFAULT_BLANK_STYLE)}
+                    >
+                      {t.blankLabel}
+                    </span>
+                  )
+                return (
+                  <span key={i} className="font-medium text-bottle-700">
+                    {`{{${t.fieldId}}}`}
+                  </span>
+                )
+              })}
+            </p>
+          ))}
+        </div>
       )
+    }
     case 'table': {
       const cols = el.columns ?? []
       const summarizeCols = cols.filter(c => c.summarize)
