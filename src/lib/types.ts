@@ -7,7 +7,9 @@ export type Role = 'admin' | 'client'
 export interface Official {
   id: string
   barangayId: string
-  position: 'Punong Barangay' | 'Treasurer' | 'Secretary' | 'Kagawad' | string
+  position: string // primary designation — e.g. Punong Barangay, Secretary, Treasurer, Kagawad 1-8
+  secondaryDesignation?: string // e.g. BAC Chairman, BAC Member 1-6, BAC Secretariat
+  tertiaryDesignation?: string // e.g. Committee on Appropriations, etc.
   name: string
 }
 

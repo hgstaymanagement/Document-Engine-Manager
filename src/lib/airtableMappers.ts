@@ -11,10 +11,14 @@ export function mapBarangay(rec: AirtableRecord<Record<string, unknown>>): Baran
 
 export function mapOfficial(rec: AirtableRecord<Record<string, unknown>>): Official {
   const barangayLinks = (rec.fields[F.officials.barangay] as string[] | undefined) ?? []
+  const secondary = rec.fields[F.officials.secondaryDesignation]
+  const tertiary = rec.fields[F.officials.tertiaryDesignation]
   return {
     id: rec.id,
     barangayId: barangayLinks[0] ?? '',
-    position: String(rec.fields[F.officials.position] ?? '') as Official['position'],
+    position: String(rec.fields[F.officials.position] ?? ''),
+    secondaryDesignation: secondary ? String(secondary) : undefined,
+    tertiaryDesignation: tertiary ? String(tertiary) : undefined,
     name: String(rec.fields[F.officials.name] ?? ''),
   }
 }

@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useAirtableData } from '../../lib/airtableStore'
 import type { Official } from '../../lib/types'
+import { PRIMARY_DESIGNATIONS, SECONDARY_DESIGNATIONS, TERTIARY_DESIGNATIONS } from '../../lib/designations'
 import { PageHeader, LedgerTable, Row, Cell, Button, inputCls } from '../../components/ui'
 
-const POSITIONS = ['Punong Barangay', 'Treasurer', 'Secretary', 'Kagawad']
+const NONE = ''
 
 export default function Barangays() {
   const {
@@ -43,8 +44,8 @@ export default function Barangays() {
     if (active === id) setActive(barangays.find(x => x.id !== id)?.id ?? '')
   }
 
-  function handleAddOfficial(name: string, position: string) {
-    createOfficial(active, name, position)
+  function handleAddOfficial(name: string, position: string, secondary: string, tertiary: string) {
+    createOfficial(active, name, position, secondary || undefined, tertiary || undefined)
     setAddingOfficial(false)
   }
 
@@ -114,10 +115,13 @@ export default function Barangays() {
                   Delete barangay
                 </button>
               </div>
-              <p className="text-[12.5px] text-ink/50 mb-6">Barangay officials</p>
+              <p className="text-[12.5px] text-ink/50 mb-6">
+                Barangay officials — each can hold a primary seat plus an optional secondary (BAC) and
+                tertiary (committee) designation.
+              </p>
 
-              <div className="border border-line rounded-sm2 bg-white px-5 max-w-2xl">
-                <LedgerTable columns={['Position', 'Name', '']}>
+              <div className="border border-line rounded-sm2 bg-white px-5 max-w-5xl overflow-x-auto">
+                <LedgerTable columns={['Primary', 'Secondary', 'Tertiary', 'Name', '']}>
                   {list.map(o => (
                     <Row key={o.id}>
                       <Cell className="text-ink/60">
@@ -126,7 +130,35 @@ export default function Barangays() {
                           onChange={e => updateOfficial(o.id, { position: e.target.value })}
                           className="focus-ring border border-transparent hover:border-line rounded-sm2 -ml-1.5 px-1.5 py-1 bg-transparent"
                         >
-                          {POSITIONS.map(p => (
+                          {PRIMARY_DESIGNATIONS.map(p => (
+                            <option key={p} value={p}>
+                              {p}
+                            </option>
+                          ))}
+                        </select>
+                      </Cell>
+                      <Cell className="text-ink/60">
+                        <select
+                          value={o.secondaryDesignation ?? NONE}
+                          onChange={e => updateOfficial(o.id, { secondaryDesignation: e.target.value })}
+                          className="focus-ring border border-transparent hover:border-line rounded-sm2 -ml-1.5 px-1.5 py-1 bg-transparent"
+                        >
+                          <option value={NONE}>— None —</option>
+                          {SECONDARY_DESIGNATIONS.map(p => (
+                            <option key={p} value={p}>
+                              {p}
+                            </option>
+                          ))}
+                        </select>
+                      </Cell>
+                      <Cell className="text-ink/60">
+                        <select
+                          value={o.tertiaryDesignation ?? NONE}
+                          onChange={e => updateOfficial(o.id, { tertiaryDesignation: e.target.value })}
+                          className="focus-ring border border-transparent hover:border-line rounded-sm2 -ml-1.5 px-1.5 py-1 bg-transparent max-w-[220px]"
+                        >
+                          <option value={NONE}>— None —</option>
+                          {TERTIARY_DESIGNATIONS.map(p => (
                             <option key={p} value={p}>
                               {p}
                             </option>
@@ -167,7 +199,7 @@ export default function Barangays() {
                 )}
               </div>
 
-              <div className="max-w-2xl mt-3">
+              <div className="max-w-5xl mt-3">
                 {addingOfficial ? (
                   <AddOfficialForm onAdd={handleAddOfficial} onCancel={() => setAddingOfficial(false)} />
                 ) : (
@@ -178,8 +210,8 @@ export default function Barangays() {
               </div>
 
               <p className="mt-4 text-[12px] text-ink/40 max-w-2xl">
-                Changing an official's name here does not alter any historical submission — submitted
-                forms freeze a snapshot of official data at the time they were filled out.
+                Changing an official's name or designations here does not alter any historical submission —
+                submitted forms freeze a snapshot of official data at the time they were filled out.
               </p>
             </>
           ) : (
@@ -197,46 +229,76 @@ function AddOfficialForm({
   onAdd,
   onCancel,
 }: {
-  onAdd: (name: string, position: string) => void
+  onAdd: (name: string, position: string, secondary: string, tertiary: string) => void
   onCancel: () => void
 }) {
   const [name, setName] = useState('')
-  const [position, setPosition] = useState(POSITIONS[0])
+  const [position, setPosition] = useState(PRIMARY_DESIGNATIONS[0])
+  const [secondary, setSecondary] = useState(NONE)
+  const [tertiary, setTertiary] = useState(NONE)
 
   return (
-    <div className="border border-line rounded-sm2 bg-white p-4 flex items-end gap-3">
-      <div className="flex-1">
-        <label className="block text-[11.5px] text-ink/50 mb-1">Name</label>
-        <input
-          autoFocus
-          className={inputCls}
-          value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder="Full name"
-        />
+    <div className="border border-line rounded-sm2 bg-white p-4 space-y-3">
+      <div className="flex items-end gap-3">
+        <div className="flex-1">
+          <label className="block text-[11.5px] text-ink/50 mb-1">Name</label>
+          <input
+            autoFocus
+            className={inputCls}
+            value={name}
+            onChange={e => setName(e.target.value)}
+            placeholder="Full name"
+          />
+        </div>
+        <div>
+          <label className="block text-[11.5px] text-ink/50 mb-1">Primary designation</label>
+          <select value={position} onChange={e => setPosition(e.target.value)} className={inputCls}>
+            {PRIMARY_DESIGNATIONS.map(p => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
-      <div>
-        <label className="block text-[11.5px] text-ink/50 mb-1">Position</label>
-        <select value={position} onChange={e => setPosition(e.target.value)} className={inputCls}>
-          {POSITIONS.map(p => (
-            <option key={p} value={p}>
-              {p}
-            </option>
-          ))}
-        </select>
+      <div className="flex items-end gap-3">
+        <div className="flex-1">
+          <label className="block text-[11.5px] text-ink/50 mb-1">Secondary designation (optional)</label>
+          <select value={secondary} onChange={e => setSecondary(e.target.value)} className={inputCls}>
+            <option value={NONE}>— None —</option>
+            {SECONDARY_DESIGNATIONS.map(p => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex-1">
+          <label className="block text-[11.5px] text-ink/50 mb-1">Tertiary designation (optional)</label>
+          <select value={tertiary} onChange={e => setTertiary(e.target.value)} className={inputCls}>
+            <option value={NONE}>— None —</option>
+            {TERTIARY_DESIGNATIONS.map(p => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
-      <Button variant="secondary" onClick={onCancel}>
-        Cancel
-      </Button>
-      <Button
-        disabled={!name.trim()}
-        onClick={() => {
-          onAdd(name.trim(), position)
-          setName('')
-        }}
-      >
-        Add
-      </Button>
+      <div className="flex justify-end gap-2">
+        <Button variant="secondary" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button
+          disabled={!name.trim()}
+          onClick={() => {
+            onAdd(name.trim(), position, secondary, tertiary)
+            setName('')
+          }}
+        >
+          Add
+        </Button>
+      </div>
     </div>
   )
 }

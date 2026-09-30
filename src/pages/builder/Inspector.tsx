@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import type { BorderPreset, FormElement, ParagraphStyle, TableColumn, TableColumnType, TextStyle, DynamicTextToken } from '../../lib/types'
 import { DEFAULT_PARAGRAPH_STYLE } from '../../lib/paragraphStyle'
 import { DEFAULT_TEXT_STYLE, DEFAULT_BLANK_STYLE, FONT_FAMILIES } from '../../lib/textStyle'
-import { DATABASE_FIELDS } from '../../lib/databaseFields'
+import { DATABASE_FIELDS, type DatabaseFieldOption } from '../../lib/databaseFields'
 import { generateId } from '../../lib/uniqueId'
 import { Button, Field, inputCls } from '../../components/ui'
 
@@ -71,11 +71,34 @@ export default function Inspector({
             value={element.databaseField ?? ''}
             onChange={e => onChange({ databaseField: e.target.value })}
           >
-            {DATABASE_FIELDS.map(f => (
-              <option key={f.value} value={f.value}>
-                {f.label}
-              </option>
-            ))}
+            <optgroup label="Barangay">
+              {DATABASE_FIELDS.filter(f => !f.group).map(f => (
+                <option key={f.value} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Primary designations">
+              {DATABASE_FIELDS.filter(f => f.group === 'Primary').map(f => (
+                <option key={f.value} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Secondary designations (BAC)">
+              {DATABASE_FIELDS.filter(f => f.group === 'Secondary').map(f => (
+                <option key={f.value} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Tertiary designations (Committees)">
+              {DATABASE_FIELDS.filter(f => f.group === 'Tertiary').map(f => (
+                <option key={f.value} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
+            </optgroup>
           </select>
         </Field>
       )}
@@ -336,19 +359,32 @@ function DynamicTextEditor({
       )}
       <div>
         <span className="block text-[10.5px] text-ink/40 mt-3 mb-1">Database fields</span>
-        <div className="flex flex-wrap gap-1.5">
-          {DATABASE_FIELDS.map(f => (
-            <button
-              key={f.value}
-              type="button"
-              onClick={() => insertField(f.value)}
-              title={`Insert {{${f.value}}}`}
-              className="focus-ring text-[11px] font-mono px-2 py-1 rounded-sm2 border border-line2 bg-paper hover:border-bottle-600 hover:bg-bottle-50 hover:text-bottle-700 transition-colors"
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        {(
+          [
+            { title: 'Barangay & primary designations', match: (f: DatabaseFieldOption) => !f.group || f.group === 'Primary', open: true },
+            { title: 'Secondary designations (BAC)', match: (f: DatabaseFieldOption) => f.group === 'Secondary', open: false },
+            { title: 'Tertiary designations (Committees)', match: (f: DatabaseFieldOption) => f.group === 'Tertiary', open: false },
+          ] as const
+        ).map(section => (
+          <details key={section.title} open={section.open} className="mb-1.5 group">
+            <summary className="cursor-pointer text-[11px] text-ink/55 hover:text-ink select-none py-0.5">
+              {section.title}
+            </summary>
+            <div className="flex flex-wrap gap-1.5 mt-1.5">
+              {DATABASE_FIELDS.filter(section.match).map(f => (
+                <button
+                  key={f.value}
+                  type="button"
+                  onClick={() => insertField(f.value)}
+                  title={`Insert {{${f.value}}}`}
+                  className="focus-ring text-[11px] font-mono px-2 py-1 rounded-sm2 border border-line2 bg-paper hover:border-bottle-600 hover:bg-bottle-50 hover:text-bottle-700 transition-colors text-left"
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </details>
+        ))}
       </div>
       <div>
         <span className="block text-[10.5px] text-ink/40 mt-3 mb-1">

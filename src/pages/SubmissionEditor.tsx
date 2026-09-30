@@ -6,16 +6,21 @@ import type { FormElement, Submission, TableColumn } from '../lib/types'
 import DocumentRender, { type RenderData } from '../components/DocumentRender'
 import { recomputeRow, sumColumn, formatSum } from '../lib/formula'
 import { getFillableInputElements, getBlankFields } from '../lib/formFields'
+import { slugifyDesignation } from '../lib/designations'
 import { textStyleToCss } from '../lib/textStyle'
 import { Button, Field, inputCls, StatusPill } from '../components/ui'
 
-/** Signature/database-field lookups use snake_case ids (e.g. "punong_barangay"),
- * but officialSnapshotFor() returns human-readable position names (e.g.
- * "Punong Barangay") to match how it's stored in Airtable. Normalize once
- * here rather than keeping a second, separately-computed snapshot. */
+/** Signature/database-field lookups use slugified ids (e.g. "punong_barangay",
+ * or "committee_on_peace_and_order_human_rights" for designations with
+ * slashes/commas in their label), but officialSnapshotFor() returns
+ * human-readable designation names (e.g. "Punong Barangay") to match how
+ * they're stored in Airtable. Normalize once here, using the exact same
+ * slugifier the Dynamic/Rich Text binding picker uses to generate its field
+ * ids (src/lib/designations.ts) — so a designation's snapshot key can never
+ * drift from the {{field_id}} someone actually typed to reference it. */
 function toSnakeKeys(obj: Record<string, string>) {
   const out: Record<string, string> = {}
-  for (const [k, v] of Object.entries(obj)) out[k.toLowerCase().replace(/\s+/g, '_')] = v
+  for (const [k, v] of Object.entries(obj)) out[slugifyDesignation(k)] = v
   return out
 }
 

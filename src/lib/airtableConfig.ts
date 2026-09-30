@@ -23,6 +23,8 @@ export const FIELDS = {
     name: 'fldoekX8ho7exr9om',
     position: 'fldoUIau533eWP0Fy',
     barangay: 'fldvCrpMprbND2nt6',
+    secondaryDesignation: 'fld79Iz7wAoIBi82s',
+    tertiaryDesignation: 'fld9pE18C13g0k78d',
   },
   clients: {
     name: 'fldtag7b1NkJRCwUo',

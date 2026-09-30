@@ -75,7 +75,7 @@ export async function createRecords<F = Record<string, unknown>>(
   for (const batch of chunk(records, 10)) {
     const data = await request(`/${BASE_ID}/${tableId}`, {
       method: 'POST',
-      body: JSON.stringify({ records: batch, returnFieldsByFieldId: true }),
+      body: JSON.stringify({ records: batch, returnFieldsByFieldId: true, typecast: true }),
     })
     results.push(...data.records)
   }
@@ -91,7 +91,7 @@ export async function updateRecords<F = Record<string, unknown>>(
   for (const batch of chunk(records, 10)) {
     const data = await request(`/${BASE_ID}/${tableId}`, {
       method: 'PATCH',
-      body: JSON.stringify({ records: batch, returnFieldsByFieldId: true }),
+      body: JSON.stringify({ records: batch, returnFieldsByFieldId: true, typecast: true }),
     })
     results.push(...data.records)
   }

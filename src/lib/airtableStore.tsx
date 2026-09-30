@@ -45,8 +45,17 @@ interface Ctx {
   updateBarangayName: (id: string, name: string) => void
   deleteBarangay: (id: string) => void
 
-  createOfficial: (barangayId: string, name: string, position: string) => Promise<void>
-  updateOfficial: (id: string, patch: { name?: string; position?: string }) => void
+  createOfficial: (
+    barangayId: string,
+    name: string,
+    position: string,
+    secondaryDesignation?: string,
+    tertiaryDesignation?: string
+  ) => Promise<void>
+  updateOfficial: (
+    id: string,
+    patch: { name?: string; position?: string; secondaryDesignation?: string; tertiaryDesignation?: string }
+  ) => void
   deleteOfficial: (id: string) => void
 
   createSubmission: (input: Omit<Submission, 'id'>) => Promise<string>
@@ -172,7 +181,15 @@ export function AirtableProvider({ children }: { children: React.ReactNode }) {
   function officialSnapshotFor(barangayId: string) {
     const list = officials.filter(o => o.barangayId === barangayId)
     const snap: Record<string, string> = {}
-    for (const o of list) if (!snap[o.position]) snap[o.position] = o.name
+    // First occurrence wins per designation — an official's primary,
+    // secondary, and tertiary designations are indexed the same way, so a
+    // Kagawad who is also BAC Chairman and chairs a committee shows up
+    // under all three when a form references any of them.
+    for (const o of list) {
+      if (o.position && !snap[o.position]) snap[o.position] = o.name
+      if (o.secondaryDesignation && !snap[o.secondaryDesignation]) snap[o.secondaryDesignation] = o.name
+      if (o.tertiaryDesignation && !snap[o.tertiaryDesignation]) snap[o.tertiaryDesignation] = o.name
+    }
     return snap
   }
 
@@ -317,18 +334,53 @@ export function AirtableProvider({ children }: { children: React.ReactNode }) {
     if (officialIds.length) deleteRecords(TABLES.officials, officialIds).catch(e => setError(String(e)))
   }
 
-  async function createOfficial(barangayId: string, name: string, position: string) {
+  async function createOfficial(
+    barangayId: string,
+    name: string,
+    position: string,
+    secondaryDesignation?: string,
+    tertiaryDesignation?: string
+  ) {
     const [rec] = await createRecords(TABLES.officials, [
-      { fields: { [F.officials.name]: name, [F.officials.position]: position, [F.officials.barangay]: [barangayId] } },
+      {
+        fields: {
+          [F.officials.name]: name,
+          [F.officials.position]: position,
+          [F.officials.barangay]: [barangayId],
+          ...(secondaryDesignation ? { [F.officials.secondaryDesignation]: secondaryDesignation } : {}),
+          ...(tertiaryDesignation ? { [F.officials.tertiaryDesignation]: tertiaryDesignation } : {}),
+        },
+      },
     ])
-    setOfficials(os => [...os, { id: rec.id, barangayId, name, position: position as Official['position'] }])
+    setOfficials(os => [...os, { id: rec.id, barangayId, name, position, secondaryDesignation, tertiaryDesignation }])
   }
 
-  function updateOfficial(id: string, patch: { name?: string; position?: string }) {
-    setOfficials(os => os.map(o => (o.id === id ? { ...o, ...patch } as Official : o)))
+  function updateOfficial(
+    id: string,
+    patch: { name?: string; position?: string; secondaryDesignation?: string; tertiaryDesignation?: string }
+  ) {
+    setOfficials(os =>
+      os.map(o =>
+        o.id === id
+          ? {
+              ...o,
+              ...patch,
+              // An empty string from the "— None —" dropdown option means
+              // "clear this designation" — store it as genuinely absent
+              // rather than an empty string sitting around.
+              secondaryDesignation: patch.secondaryDesignation === '' ? undefined : (patch.secondaryDesignation ?? o.secondaryDesignation),
+              tertiaryDesignation: patch.tertiaryDesignation === '' ? undefined : (patch.tertiaryDesignation ?? o.tertiaryDesignation),
+            }
+          : o
+      )
+    )
     const fields: Record<string, unknown> = {}
     if (patch.name !== undefined) fields[F.officials.name] = patch.name
     if (patch.position !== undefined) fields[F.officials.position] = patch.position
+    // Airtable clears a singleSelect field when it's set to null — an empty
+    // string isn't a valid choice and would be rejected.
+    if (patch.secondaryDesignation !== undefined) fields[F.officials.secondaryDesignation] = patch.secondaryDesignation || null
+    if (patch.tertiaryDesignation !== undefined) fields[F.officials.tertiaryDesignation] = patch.tertiaryDesignation || null
     updateRecords(TABLES.officials, [{ id, fields }]).catch(e => setError(String(e)))
   }
 
