@@ -24,18 +24,6 @@ export const DEFAULT_TEXT_STYLE: TextStyle = {
   fontSize: 13,
 }
 
-// Unlike regular text, a fillable blank always needs *some* visual cue that
-// it's a blank — so unlike DEFAULT_TEXT_STYLE above, this one IS applied
-// automatically when a blank has no explicit style yet. Underlined is the
-// standard "fill in the blank" convention; bold/italic/strikethrough stay
-// off by default but are just as toggleable per blank as they are for any
-// other text.
-export const DEFAULT_BLANK_STYLE: TextStyle = {
-  fontFamily: 'source-serif',
-  fontSize: 13,
-  underline: true,
-}
-
 export function fontCssFor(fontFamily: string): string {
   return FONT_FAMILIES.find(f => f.value === fontFamily)?.css ?? FONT_FAMILIES[0].css
 }
@@ -55,18 +43,26 @@ export function fontCssFor(fontFamily: string): string {
 export function textStyleToCss(style: TextStyle | undefined): CSSProperties {
   if (!style) return {}
   // Once a style object exists (the person has opened the Font panel and
-  // touched something), every property is stated explicitly — including the
-  // "off" states — rather than only adding "on" styling. Otherwise a
-  // hardcoded default class elsewhere (e.g. a element type that's italic by
-  // default) would keep winning even after the person turns the toggle off,
-  // since nothing would ever tell the browser to go back to normal.
-  return {
-    fontFamily: fontCssFor(style.fontFamily),
-    fontSize: style.fontSize,
+  // touched something), bold/italic/underline/strikethrough are stated
+  // explicitly — including the "off" states — rather than only adding "on"
+  // styling. Otherwise a hardcoded default elsewhere would keep winning
+  // even after the person turns the toggle off, since nothing would ever
+  // tell the browser to go back to normal.
+  //
+  // fontFamily/fontSize are different: they're only included when actually
+  // set. A fillable blank, for instance, may only ever have bold/italic/
+  // underline toggled (never a font choice, since there's no font picker
+  // for individual blanks) — it should keep inheriting the surrounding
+  // paragraph's font rather than being silently pinned to a default face
+  // and size the moment any other property is touched.
+  const css: CSSProperties = {
     fontWeight: style.bold ? 700 : 400,
     fontStyle: style.italic ? 'italic' : 'normal',
     textDecorationLine: [style.underline && 'underline', style.strikethrough && 'line-through'].filter(Boolean).join(' ') || 'none',
   }
+  if (style.fontFamily) css.fontFamily = fontCssFor(style.fontFamily)
+  if (style.fontSize) css.fontSize = style.fontSize
+  return css
 }
 
 /**

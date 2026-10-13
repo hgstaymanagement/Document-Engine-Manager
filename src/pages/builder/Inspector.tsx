@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import type { BorderPreset, FormElement, ParagraphStyle, TableColumn, TableColumnType, TextStyle, DynamicTextToken } from '../../lib/types'
 import { DEFAULT_PARAGRAPH_STYLE } from '../../lib/paragraphStyle'
-import { DEFAULT_TEXT_STYLE, DEFAULT_BLANK_STYLE, FONT_FAMILIES } from '../../lib/textStyle'
+import { DEFAULT_TEXT_STYLE, FONT_FAMILIES } from '../../lib/textStyle'
 import { DATABASE_FIELDS, type DatabaseFieldOption } from '../../lib/databaseFields'
 import { generateId } from '../../lib/uniqueId'
 import { Button, Field, inputCls } from '../../components/ui'
@@ -288,15 +288,15 @@ function DynamicTextEditor({
     const label = window.prompt('Label for this blank (shown to whoever fills out the form):')
     if (!label || !label.trim()) return
     const blankId = generateId('blank')
+    // No style is seeded here on purpose: a new blank starts with no
+    // styling of its own, so it inherits the surrounding paragraph's font,
+    // size, weight and decoration and blends seamlessly into the text.
+    // B/I/U below are opt-in per blank for anyone who wants one to stand out.
     insertMarker(`[[${blankId}::${label.trim()}]]`)
-    // Seed a default style (underlined, matching the usual "fill in the
-    // blank" convention) so it's visibly a blank from the moment it's
-    // created, while still being fully adjustable per blank afterward.
-    onChange({ blankStyles: { ...blankStyles, [blankId]: { ...DEFAULT_BLANK_STYLE } } })
   }
 
   function toggleBlankStyle(blankId: string, key: 'bold' | 'italic' | 'underline') {
-    const current = blankStyles?.[blankId] ?? DEFAULT_BLANK_STYLE
+    const current: TextStyle = blankStyles?.[blankId] ?? {}
     onChange({ blankStyles: { ...blankStyles, [blankId]: { ...current, [key]: !current[key] } } })
   }
 
@@ -322,7 +322,7 @@ function DynamicTextEditor({
             {(tokens ?? [])
               .filter(t => t.type === 'blank')
               .map(t => {
-                const style = (t.blankId ? blankStyles?.[t.blankId] : undefined) ?? DEFAULT_BLANK_STYLE
+                const style: TextStyle = (t.blankId ? blankStyles?.[t.blankId] : undefined) ?? {}
                 return (
                   <div
                     key={t.blankId}

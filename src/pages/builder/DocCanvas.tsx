@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import type { FormElement, FormVersion } from '../../lib/types'
 import { getPageGeometry, ROW_H, COLS, resolveCollision } from '../../lib/pageGeometry'
-import { textAndParagraphCss, textStyleToCss, DEFAULT_BLANK_STYLE } from '../../lib/textStyle'
+import { textAndParagraphCss, textStyleToCss } from '../../lib/textStyle'
 import { splitTokensIntoParagraphs } from '../../lib/dynamicTextParagraphs'
 import { borderClass } from './FormBuilder'
 
@@ -217,7 +217,7 @@ function ElementContent({ el }: { el: FormElement }) {
                     <span
                       key={i}
                       className="mx-0.5 px-1.5 text-bottle-700"
-                      style={textStyleToCss(el.blankStyles?.[t.blankId ?? ''] ?? DEFAULT_BLANK_STYLE)}
+                      style={textStyleToCss(el.blankStyles?.[t.blankId ?? ''])}
                     >
                       {t.blankLabel}
                     </span>

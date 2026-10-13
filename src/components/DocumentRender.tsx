@@ -1,6 +1,6 @@
 import type { FormElement, FormVersion } from '../lib/types'
 import { getPageGeometry, ROW_H } from '../lib/pageGeometry'
-import { textAndParagraphCss, textStyleToCss, DEFAULT_BLANK_STYLE } from '../lib/textStyle'
+import { textAndParagraphCss, textStyleToCss } from '../lib/textStyle'
 import { splitTokensIntoParagraphs } from '../lib/dynamicTextParagraphs'
 import { sumColumn, formatSum } from '../lib/formula'
 import { borderClass } from '../pages/builder/FormBuilder'
@@ -87,7 +87,7 @@ function FilledContent({ el, data, rows }: { el: FormElement; data: RenderData; 
                 if (t.type === 'blank') {
                   const value = data[t.blankId ?? '']
                   return (
-                    <span key={i} className="px-1" style={textStyleToCss(el.blankStyles?.[t.blankId ?? ''] ?? DEFAULT_BLANK_STYLE)}>
+                    <span key={i} className="px-1" style={textStyleToCss(el.blankStyles?.[t.blankId ?? ''])}>
                       {value != null && value !== '' ? String(value) : '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0'}
                     </span>
                   )

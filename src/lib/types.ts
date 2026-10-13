@@ -99,8 +99,8 @@ export interface ParagraphStyle {
 }
 
 export interface TextStyle {
-  fontFamily: string // key into FONT_FAMILIES (src/lib/textStyle.ts)
-  fontSize: number // px
+  fontFamily?: string // key into FONT_FAMILIES (src/lib/textStyle.ts) — omitted means "inherit from parent"
+  fontSize?: number // px — omitted means "inherit from parent"
   bold?: boolean
   italic?: boolean
   underline?: boolean
