@@ -91,7 +91,7 @@ export default function Login() {
                     autoFocus
                     value={loginId}
                     onChange={e => setLoginId(e.target.value)}
-                    placeholder="e.g. kgolpo"
+                    placeholder="User Id"
                     className="focus-ring w-full border border-line rounded-sm2 px-3 py-2 text-[14px] bg-white"
                   />
                 </div>
@@ -104,7 +104,7 @@ export default function Login() {
                     placeholder="••••••••"
                     className="focus-ring w-full border border-line rounded-sm2 px-3 py-2 text-[14px] bg-white"
                   />
-                  <p className="mt-1.5 text-[11.5px] text-ink/40">Set or reset by an admin from the Clients page.</p>
+                  <p className="mt-1.5 text-[11.5px] text-ink/40">Forgot password? Contact Admin for reset.</p>
                 </div>
               </>
             ) : (
@@ -133,7 +133,7 @@ export default function Login() {
         </div>
 
         <p className="mt-6 text-center text-[11.5px] text-ink/40">
-          Barangay, official, and account records are synced live with Airtable.
+          This Project is donated by Mr. Harold Winston Guadiz to LIGA Bulan Chapter of LGU of Bulan, Sorsogon.
         </p>
       </div>
     </div>

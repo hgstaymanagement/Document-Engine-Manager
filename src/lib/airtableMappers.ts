@@ -67,9 +67,28 @@ export function mapFormVersion(rec: AirtableRecord<Record<string, unknown>>): Ra
         orientation: (rec.fields[F.formVersions.orientation] as FormVersion['page']['orientation']) ?? 'portrait',
         margins,
       },
-      elements: dedupeElementIds(elements),
+      elements: stripLegacyBlankFonts(dedupeElementIds(elements)),
     },
   }
+}
+
+/**
+ * Blanks have no font picker, so a saved fontFamily/fontSize on a blank's
+ * style can only be a leftover from when new blanks were seeded with a
+ * hardcoded default face and size. Dropping them on load lets those older
+ * blanks inherit their paragraph's font like newly created ones do.
+ */
+function stripLegacyBlankFonts(elements: FormVersion['elements']): FormVersion['elements'] {
+  return elements.map(el => {
+    if (!el.blankStyles) return el
+    const cleaned = Object.fromEntries(
+      Object.entries(el.blankStyles).map(([id, style]) => {
+        const { fontFamily: _f, fontSize: _s, ...rest } = style
+        return [id, rest]
+      })
+    )
+    return { ...el, blankStyles: cleaned }
+  })
 }
 
 /**

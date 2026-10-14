@@ -38,7 +38,7 @@ function DataGate() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-canvas">
-        <p className="text-[13.5px] text-ink/50">Loading barangays, forms, and submissions from Airtable…</p>
+        <p className="text-[13.5px] text-ink/50">MAGHULAT TABI…</p>
       </div>
     )
   }
