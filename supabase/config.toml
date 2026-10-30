@@ -1,0 +1,5 @@
+# Minimal config so `supabase functions deploy admin-clients` works.
+# Linked project ref is set by `supabase link`.
+
+[functions.admin-clients]
+verify_jwt = true

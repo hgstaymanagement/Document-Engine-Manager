@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  @apply bg-canvas text-ink font-sans antialiased;
+}
+
+::selection {
+  background: #C79A3E33;
+}
+
+.focus-ring {
+  @apply outline-none focus-visible:ring-2 focus-visible:ring-bottle-600 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-root, #print-root * {
+    visibility: visible;
+  }
+  #print-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    /* The on-screen wrapper (FormPreview, SubmissionEditor) applies its own
+       padding so the page floats nicely away from the browser viewport
+       edges. That padding must not carry into print: our page div is a
+       fixed-size box meant to map 1:1 onto the physical paper with zero
+       browser margin (see the injected `@page` rule), so any leftover
+       padding here pushes the whole page down/right, which then either
+       overflows the declared page size (spilling the bottom margin onto a
+       second sheet) or gets shrink-to-fit scaled by the browser, squashing
+       every margin you configured in the builder. */
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}
