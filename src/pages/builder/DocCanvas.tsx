@@ -1,10 +1,16 @@
 import { useRef, useState } from 'react'
 import type { FormElement, FormVersion } from '../../lib/types'
 import { getPageGeometry, ROW_H, COLS, resolveCollision } from '../../lib/pageGeometry'
+<<<<<<< HEAD
 import { textAndParagraphCss } from '../../lib/textStyle'
 import { splitTokensIntoParagraphs } from '../../lib/dynamicTextParagraphs'
 import { borderClass } from '../../lib/borderStyle'
 import { tableFooterCellKind } from '../../lib/tableFooter'
+=======
+import { textAndParagraphCss, textStyleToCss } from '../../lib/textStyle'
+import { splitTokensIntoParagraphs } from '../../lib/dynamicTextParagraphs'
+import { borderClass } from './FormBuilder'
+>>>>>>> origin/main
 
 export default function DocCanvas({
   pageLayout,
@@ -32,7 +38,11 @@ export default function DocCanvas({
     onSelect(el.id)
     setDragId(el.id)
     setGhost({ x: el.x, y: el.y })
+<<<<<<< HEAD
     ref.current?.setPointerCapture(e.pointerId)
+=======
+    ;(e.target as Element).setPointerCapture(e.pointerId)
+>>>>>>> origin/main
   }
 
   function handlePointerMove(e: React.PointerEvent) {
@@ -204,21 +214,46 @@ function ElementContent({ el }: { el: FormElement }) {
           {el.label}
         </h3>
       )
+<<<<<<< HEAD
     case 'dynamic_text': {
+=======
+    case 'dynamic_text':
+    case 'rich_text': {
+>>>>>>> origin/main
       const paragraphs = splitTokensIntoParagraphs(el.tokens)
       return (
         <div>
           {paragraphs.map((tokens, pi) => (
             <p key={pi} className="text-[12.5px] text-ink/80" style={textAndParagraphCss(el.paragraphStyle, el.textStyle)} lang="en">
+<<<<<<< HEAD
               {tokens.map((t, i) =>
                 t.type === 'text' ? (
                   <span key={i}>{t.value}</span>
                 ) : (
+=======
+              {tokens.map((t, i) => {
+                if (t.type === 'text') return <span key={i}>{t.value}</span>
+                if (t.type === 'blank')
+                  return (
+                    <span
+                      key={i}
+                      className="mx-0.5 px-1.5 text-bottle-700"
+                      style={textStyleToCss(el.blankStyles?.[t.blankId ?? ''])}
+                    >
+                      {t.blankLabel}
+                    </span>
+                  )
+                return (
+>>>>>>> origin/main
                   <span key={i} className="font-medium text-bottle-700">
                     {`{{${t.fieldId}}}`}
                   </span>
                 )
+<<<<<<< HEAD
               )}
+=======
+              })}
+>>>>>>> origin/main
             </p>
           ))}
         </div>
@@ -227,6 +262,10 @@ function ElementContent({ el }: { el: FormElement }) {
     case 'table': {
       const cols = el.columns ?? []
       const summarizeCols = cols.filter(c => c.summarize)
+<<<<<<< HEAD
+=======
+      let labelPlaced = false
+>>>>>>> origin/main
       return (
         <table className="w-full border-collapse text-[11.5px]">
           <thead>
@@ -252,16 +291,26 @@ function ElementContent({ el }: { el: FormElement }) {
           {summarizeCols.length > 0 && (
             <tfoot>
               <tr>
+<<<<<<< HEAD
                 {cols.map((c, i) => {
                   const kind = tableFooterCellKind(cols, i)
                   if (kind === 'summarize') {
+=======
+                {cols.map(c => {
+                  if (c.summarize) {
+>>>>>>> origin/main
                     return (
                       <td key={c.id} className="border border-ink/60 px-1.5 py-1.5 font-semibold bg-paper text-right text-ink/40">
                         0.00
                       </td>
                     )
                   }
+<<<<<<< HEAD
                   if (kind === 'total-label') {
+=======
+                  if (!labelPlaced) {
+                    labelPlaced = true
+>>>>>>> origin/main
                     return (
                       <td key={c.id} className="border border-ink/60 px-1.5 py-1.5 font-semibold bg-paper text-right text-ink/40">
                         Total
@@ -276,12 +325,15 @@ function ElementContent({ el }: { el: FormElement }) {
         </table>
       )
     }
+<<<<<<< HEAD
     case 'image':
       return (
         <div className="flex items-center justify-center h-full min-h-[48px] border border-dashed border-ink/30 bg-paper text-[11px] text-ink/40">
           {el.label || 'Image / Logo'}
         </div>
       )
+=======
+>>>>>>> origin/main
     case 'signature':
       return (
         <div className="text-center text-[11.5px] pt-6">

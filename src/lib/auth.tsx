@@ -1,7 +1,12 @@
+<<<<<<< HEAD
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import type { Role } from './types'
 import { supabase, isSupabaseConfigured } from './supabaseClient'
 import { loginIdToEmail } from './loginEmail'
+=======
+import React, { createContext, useContext, useState } from 'react'
+import type { Role, Client } from './types'
+>>>>>>> origin/main
 
 interface Session {
   role: Role
@@ -11,14 +16,22 @@ interface Session {
 
 interface AuthCtx {
   session: Session | null
+<<<<<<< HEAD
   authReady: boolean
   loginAsAdmin: (password: string) => Promise<void>
   loginAsClient: (loginId: string, password: string) => Promise<void>
   logout: () => Promise<void>
+=======
+  loginAsAdmin: () => void
+  /** Caller resolves the Client (e.g. from useAirtableData().clients) and passes it in. */
+  loginAsClient: (client: Client) => void
+  logout: () => void
+>>>>>>> origin/main
 }
 
 const Ctx = createContext<AuthCtx | null>(null)
 
+<<<<<<< HEAD
 async function sessionFromUserId(userId: string): Promise<Session> {
   const { data, error } = await supabase.from('profiles').select('id, role, name, active').eq('id', userId).single()
   if (error || !data) throw new Error('This account has no profile. Ask an admin to recreate it.')
@@ -115,6 +128,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <Ctx.Provider value={{ session, authReady, loginAsAdmin, loginAsClient, logout }}>
+=======
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [session, setSession] = useState<Session | null>(null)
+
+  const loginAsAdmin = () => setSession({ role: 'admin', name: 'Admin' })
+
+  const loginAsClient = (client: Client) => {
+    setSession({ role: 'client', name: client.name, clientId: client.id })
+  }
+
+  const logout = () => setSession(null)
+
+  return (
+    <Ctx.Provider value={{ session, loginAsAdmin, loginAsClient, logout }}>
+>>>>>>> origin/main
       {children}
     </Ctx.Provider>
   )

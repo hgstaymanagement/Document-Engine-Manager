@@ -1,5 +1,9 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+<<<<<<< HEAD
 import AppBrand from '../components/AppBrand'
+=======
+import Seal from '../components/Seal'
+>>>>>>> origin/main
 import { useAuth } from '../lib/auth'
 
 const nav = [
@@ -15,7 +19,17 @@ export default function ClientLayout() {
   return (
     <div className="min-h-screen bg-canvas">
       <header className="h-16 border-b border-line bg-white flex items-center px-6 gap-8">
+<<<<<<< HEAD
         <AppBrand />
+=======
+        <div className="flex items-center gap-3">
+          <Seal size={30} />
+          <div className="leading-tight">
+            <div className="text-[13px] font-semibold tracking-tight">LIGA Bulan</div>
+            <div className="text-[11px] text-ink/50">Document Engine Manager</div>
+          </div>
+        </div>
+>>>>>>> origin/main
         <nav className="flex items-center gap-1">
           {nav.map(item => (
             <NavLink
@@ -37,7 +51,11 @@ export default function ClientLayout() {
           <button
             onClick={() => {
               logout()
+<<<<<<< HEAD
               navigate('/login/client')
+=======
+              navigate('/')
+>>>>>>> origin/main
             }}
             className="focus-ring text-[13px] text-ink/60 hover:text-clay transition-colors"
           >

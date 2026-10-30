@@ -1,7 +1,15 @@
+<<<<<<< HEAD
 // NOTE: this file is no longer imported by the live app — every screen now
 // reads/writes through src/lib/dataStore.tsx. Kept as a reference for the
 // original seed-data generation logic (the same deterministic barangay/official
 // names used when the first database was populated).
+=======
+// NOTE: as of the Airtable integration, this file is no longer imported by
+// the live app — every screen now reads/writes through src/lib/airtableStore.tsx.
+// Kept as a reference for the original seed-data generation logic (the same
+// deterministic barangay/official names used when the Airtable base was
+// first populated), in case you want to regenerate or extend seed data later.
+>>>>>>> origin/main
 import type {
   Barangay,
   Official,
@@ -51,6 +59,10 @@ export const clients: Client[] = [
     id: 'client-1',
     name: 'Camille Masongsong',
     loginId: 'cmasongsong',
+<<<<<<< HEAD
+=======
+    password: 'bulan2026',
+>>>>>>> origin/main
     active: true,
     barangayIds: [barangays[0].id, barangays[1].id, barangays[2].id, barangays[60].id],
   },
@@ -58,6 +70,10 @@ export const clients: Client[] = [
     id: 'client-2',
     name: 'Ronel Marasigan',
     loginId: 'rmarasigan',
+<<<<<<< HEAD
+=======
+    password: 'bulan2026',
+>>>>>>> origin/main
     active: true,
     barangayIds: [barangays[10].id, barangays[11].id],
   },
@@ -65,6 +81,10 @@ export const clients: Client[] = [
     id: 'client-3',
     name: 'Grace Panganiban',
     loginId: 'gpanganiban',
+<<<<<<< HEAD
+=======
+    password: 'bulan2026',
+>>>>>>> origin/main
     active: false,
     barangayIds: [barangays[20].id],
   },

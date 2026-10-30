@@ -1,11 +1,19 @@
 import { useNavigate } from 'react-router-dom'
+<<<<<<< HEAD
 import { useAppData } from '../../lib/dataStore'
+=======
+import { useAirtableData } from '../../lib/airtableStore'
+>>>>>>> origin/main
 import { useAuth } from '../../lib/auth'
 import { LedgerTable, Row, Cell, StatusPill, Button, EmptyState } from '../../components/ui'
 
 export default function MySubmissions() {
   const { session } = useAuth()
+<<<<<<< HEAD
   const { submissions, clients, formName, barangayName } = useAppData()
+=======
+  const { submissions, clients, formName, barangayName } = useAirtableData()
+>>>>>>> origin/main
   const client = clients.find(c => c.id === session?.clientId)
   const mine = submissions.filter(s => s.clientId === client?.id)
   const navigate = useNavigate()

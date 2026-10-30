@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 // Core domain types for LIGA Bulan Document Manager
 // Mirrors the MVP spec: Barangays/Officials, Clients, Access,
+=======
+// Core domain types for LIGA Bulan Document Engine Manager
+// Mirrors the MVP spec: Barangays/Officials (Airtable), Clients, Access,
+>>>>>>> origin/main
 // Forms (versioned document schema), Submissions (JSON payload).
 
 export type Role = 'admin' | 'client'
@@ -7,7 +12,13 @@ export type Role = 'admin' | 'client'
 export interface Official {
   id: string
   barangayId: string
+<<<<<<< HEAD
   position: 'Punong Barangay' | 'Treasurer' | 'Secretary' | 'Kagawad' | string
+=======
+  position: string // primary designation — e.g. Punong Barangay, Secretary, Treasurer, Kagawad 1-8
+  secondaryDesignation?: string // e.g. BAC Chairman, BAC Member 1-6, BAC Secretariat
+  tertiaryDesignation?: string // e.g. Committee on Appropriations, etc.
+>>>>>>> origin/main
   name: string
 }
 
@@ -20,6 +31,10 @@ export interface Client {
   id: string
   name: string
   loginId: string
+<<<<<<< HEAD
+=======
+  password: string
+>>>>>>> origin/main
   active: boolean
   barangayIds: string[]
 }
@@ -43,6 +58,10 @@ export type FieldType =
   | 'static_text'
   | 'section_heading'
   | 'dynamic_text'
+<<<<<<< HEAD
+=======
+  | 'rich_text'
+>>>>>>> origin/main
   | 'image'
   | 'page_break'
   | 'table'
@@ -65,9 +84,17 @@ export interface BorderStyle {
 }
 
 export interface DynamicTextToken {
+<<<<<<< HEAD
   type: 'text' | 'field'
   value?: string
   fieldId?: string
+=======
+  type: 'text' | 'field' | 'blank'
+  value?: string // for 'text'
+  fieldId?: string // for 'field' — a database field or another element's id
+  blankId?: string // for 'blank' — the key its fillable value is stored under
+  blankLabel?: string // for 'blank' — shown in the fill-form sidebar and as an in-place placeholder
+>>>>>>> origin/main
 }
 
 export type TableColumnType = 'short_text' | 'number' | 'currency' | 'date' | 'dropdown' | 'checkbox' | 'calculated'
@@ -93,8 +120,13 @@ export interface ParagraphStyle {
 }
 
 export interface TextStyle {
+<<<<<<< HEAD
   fontFamily: string // key into FONT_FAMILIES (src/lib/textStyle.ts)
   fontSize: number // px
+=======
+  fontFamily?: string // key into FONT_FAMILIES (src/lib/textStyle.ts) — omitted means "inherit from parent"
+  fontSize?: number // px — omitted means "inherit from parent"
+>>>>>>> origin/main
   bold?: boolean
   italic?: boolean
   underline?: boolean
@@ -115,9 +147,16 @@ export interface FormElement {
   options?: string[] // dropdown/radio
   databaseField?: string // e.g. 'punong_barangay'
   formula?: string // for calculated fields
+<<<<<<< HEAD
   tokens?: DynamicTextToken[] // for dynamic_text
   paragraphStyle?: ParagraphStyle // for dynamic_text, static_text, section_heading
   textStyle?: TextStyle // font family/size — for dynamic_text, static_text, section_heading
+=======
+  tokens?: DynamicTextToken[] // for dynamic_text, rich_text
+  blankStyles?: Record<string, TextStyle> // per-blank font style (bold/italic/underline), keyed by blankId
+  paragraphStyle?: ParagraphStyle // for dynamic_text, rich_text, static_text, section_heading
+  textStyle?: TextStyle // font family/size — for dynamic_text, rich_text, static_text, section_heading
+>>>>>>> origin/main
   border?: BorderStyle
   columns?: TableColumn[] // for table type — each column is its own basic-input field
   placeholder?: string

@@ -1,9 +1,16 @@
 import type { FormElement, FormVersion } from '../lib/types'
 import { getPageGeometry, ROW_H } from '../lib/pageGeometry'
+<<<<<<< HEAD
 import { textAndParagraphCss } from '../lib/textStyle'
 import { splitTokensIntoParagraphs } from '../lib/dynamicTextParagraphs'
 import { sumColumn, formatSum } from '../lib/formula'
 import { borderClass } from '../lib/borderStyle'
+=======
+import { textAndParagraphCss, textStyleToCss } from '../lib/textStyle'
+import { splitTokensIntoParagraphs } from '../lib/dynamicTextParagraphs'
+import { sumColumn, formatSum } from '../lib/formula'
+import { borderClass } from '../pages/builder/FormBuilder'
+>>>>>>> origin/main
 
 export interface RenderData {
   [key: string]: string | number | boolean | undefined
@@ -75,15 +82,35 @@ function FilledContent({ el, data, rows }: { el: FormElement; data: RenderData; 
           {el.label}
         </h3>
       )
+<<<<<<< HEAD
     case 'dynamic_text': {
+=======
+    case 'dynamic_text':
+    case 'rich_text': {
+>>>>>>> origin/main
       const paragraphs = splitTokensIntoParagraphs(el.tokens)
       return (
         <div>
           {paragraphs.map((tokens, pi) => (
             <p key={pi} className="text-[12.5px]" style={textAndParagraphCss(el.paragraphStyle, el.textStyle)} lang="en">
+<<<<<<< HEAD
               {tokens.map((t, i) =>
                 t.type === 'text' ? <span key={i}>{t.value}</span> : <span key={i}>{data[t.fieldId ?? ''] ?? `{{${t.fieldId}}}`}</span>
               )}
+=======
+              {tokens.map((t, i) => {
+                if (t.type === 'text') return <span key={i}>{t.value}</span>
+                if (t.type === 'blank') {
+                  const value = data[t.blankId ?? '']
+                  return (
+                    <span key={i} className="px-1" style={textStyleToCss(el.blankStyles?.[t.blankId ?? ''])}>
+                      {value != null && value !== '' ? String(value) : '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0'}
+                    </span>
+                  )
+                }
+                return <span key={i}>{data[t.fieldId ?? ''] ?? `{{${t.fieldId}}}`}</span>
+              })}
+>>>>>>> origin/main
             </p>
           ))}
         </div>

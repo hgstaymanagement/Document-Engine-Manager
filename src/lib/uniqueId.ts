@@ -3,7 +3,11 @@
  * multiple people/tabs — unlike a simple incrementing counter, which
  * resets to its starting value every time the module reloads (e.g. a
  * browser refresh). That's exactly what caused elements to collide: once
+<<<<<<< HEAD
  * form data started persisting across sessions, a reset
+=======
+ * form data started persisting in Airtable across sessions, a reset
+>>>>>>> origin/main
  * counter would happily hand out an id (like "el-100") that had already
  * been saved to a real element in an earlier session, silently merging
  * edits between the two and confusing React's list rendering (which keys

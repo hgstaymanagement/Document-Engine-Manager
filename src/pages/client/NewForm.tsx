@@ -1,13 +1,21 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+<<<<<<< HEAD
 import { useAppData } from '../../lib/dataStore'
+=======
+import { useAirtableData } from '../../lib/airtableStore'
+>>>>>>> origin/main
 import { useAuth } from '../../lib/auth'
 import { Button } from '../../components/ui'
 
 export default function NewForm() {
   const { session } = useAuth()
   const navigate = useNavigate()
+<<<<<<< HEAD
   const { barangays, clients, forms } = useAppData()
+=======
+  const { barangays, clients, forms } = useAirtableData()
+>>>>>>> origin/main
   const client = clients.find(c => c.id === session?.clientId)
   const assigned = barangays.filter(b => client?.barangayIds.includes(b.id))
 

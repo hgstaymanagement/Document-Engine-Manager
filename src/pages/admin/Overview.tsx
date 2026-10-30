@@ -1,9 +1,17 @@
 import { Link } from 'react-router-dom'
+<<<<<<< HEAD
 import { useAppData } from '../../lib/dataStore'
 import { PageHeader, StatusPill } from '../../components/ui'
 
 export default function Overview() {
   const { barangays, clients, forms, submissions, barangayName, formName, clientName } = useAppData()
+=======
+import { useAirtableData } from '../../lib/airtableStore'
+import { PageHeader, StatusPill } from '../../components/ui'
+
+export default function Overview() {
+  const { barangays, clients, forms, submissions, barangayName, formName, clientName } = useAirtableData()
+>>>>>>> origin/main
   const recent = [...submissions].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 5)
   const draftCount = submissions.filter(s => s.status === 'draft').length
   const submittedCount = submissions.filter(s => s.status === 'submitted').length

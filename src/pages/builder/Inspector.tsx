@@ -2,7 +2,11 @@ import { useRef, useState } from 'react'
 import type { BorderPreset, FormElement, ParagraphStyle, TableColumn, TableColumnType, TextStyle, DynamicTextToken } from '../../lib/types'
 import { DEFAULT_PARAGRAPH_STYLE } from '../../lib/paragraphStyle'
 import { DEFAULT_TEXT_STYLE, FONT_FAMILIES } from '../../lib/textStyle'
+<<<<<<< HEAD
 import { DATABASE_FIELDS } from '../../lib/databaseFields'
+=======
+import { DATABASE_FIELDS, type DatabaseFieldOption } from '../../lib/databaseFields'
+>>>>>>> origin/main
 import { generateId } from '../../lib/uniqueId'
 import { Button, Field, inputCls } from '../../components/ui'
 
@@ -58,7 +62,11 @@ export default function Inspector({
           onChange={e => onChange({ source: e.target.value as FormElement['source'] })}
         >
           <option value="input">Form Input</option>
+<<<<<<< HEAD
           <option value="database">Database (Supabase)</option>
+=======
+          <option value="database">Database (Airtable)</option>
+>>>>>>> origin/main
           <option value="calculated">Calculated</option>
           <option value="dynamic_text">Dynamic Text</option>
         </select>
@@ -71,11 +79,42 @@ export default function Inspector({
             value={element.databaseField ?? ''}
             onChange={e => onChange({ databaseField: e.target.value })}
           >
+<<<<<<< HEAD
             {DATABASE_FIELDS.map(f => (
               <option key={f.value} value={f.value}>
                 {f.label}
               </option>
             ))}
+=======
+            <optgroup label="Barangay">
+              {DATABASE_FIELDS.filter(f => !f.group).map(f => (
+                <option key={f.value} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Primary designations">
+              {DATABASE_FIELDS.filter(f => f.group === 'Primary').map(f => (
+                <option key={f.value} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Secondary designations (BAC)">
+              {DATABASE_FIELDS.filter(f => f.group === 'Secondary').map(f => (
+                <option key={f.value} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Tertiary designations (Committees)">
+              {DATABASE_FIELDS.filter(f => f.group === 'Tertiary').map(f => (
+                <option key={f.value} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
+            </optgroup>
+>>>>>>> origin/main
           </select>
         </Field>
       )}
@@ -101,6 +140,7 @@ export default function Inspector({
         </Field>
       )}
 
+<<<<<<< HEAD
       {element.type === 'dynamic_text' && (
         <DynamicTextEditor
           tokens={element.tokens}
@@ -110,6 +150,30 @@ export default function Inspector({
       )}
 
       {(element.type === 'dynamic_text' || element.type === 'static_text' || element.type === 'section_heading') && (
+=======
+      {(element.type === 'dynamic_text' || element.type === 'rich_text') && (
+        <DynamicTextEditor
+          // Forces a fresh component instance (and therefore a fresh
+          // textarea) whenever the selected element changes. The textarea
+          // below is intentionally uncontrolled (defaultValue + onBlur, so
+          // clicking a placeholder button can splice text in at the cursor
+          // without fighting a controlled value on every keystroke) — but
+          // an uncontrolled input's defaultValue is only ever applied once,
+          // at mount. Without this key, switching from one Dynamic Text
+          // element to another re-used the same mounted textarea, so it
+          // kept showing (and would save back) the PREVIOUS element's text
+          // instead of the newly selected one's.
+          key={element.id}
+          tokens={element.tokens}
+          blankStyles={element.blankStyles}
+          fillableFields={fillableFields}
+          allowBlanks={element.type === 'rich_text'}
+          onChange={onChange}
+        />
+      )}
+
+      {(element.type === 'dynamic_text' || element.type === 'static_text' || element.type === 'section_heading' || element.type === 'rich_text') && (
+>>>>>>> origin/main
         <>
           <FontStyleEditor
             style={element.textStyle}
@@ -188,6 +252,7 @@ export default function Inspector({
 
 function tokensToTemplate(tokens?: FormElement['tokens']) {
   if (!tokens) return ''
+<<<<<<< HEAD
   return tokens.map(t => (t.type === 'text' ? t.value : `{{${t.fieldId}}}`)).join('')
 }
 
@@ -196,11 +261,35 @@ function templateToTokens(template: string): DynamicTextToken[] {
   return parts.map(p => {
     const m = p.match(/^\{\{([a-zA-Z0-9_]+)\}\}$/)
     return m ? { type: 'field' as const, fieldId: m[1] } : { type: 'text' as const, value: p }
+=======
+  return tokens
+    .map(t => {
+      if (t.type === 'field') return `{{${t.fieldId}}}`
+      if (t.type === 'blank') return `[[${t.blankId}::${t.blankLabel ?? ''}]]`
+      return t.value
+    })
+    .join('')
+}
+
+function templateToTokens(template: string): DynamicTextToken[] {
+  // {{field_id}} references a database/other-form field; [[blank_id::Label]]
+  // is a fillable blank embedded right in the paragraph — the client types
+  // into it from the fill-form sidebar and the value substitutes back in
+  // at this exact spot.
+  const parts = template.split(/(\{\{[a-zA-Z0-9_-]+\}\}|\[\[[a-zA-Z0-9_-]+::[^\]]*\]\])/g).filter(Boolean)
+  return parts.map(p => {
+    const field = p.match(/^\{\{([a-zA-Z0-9_-]+)\}\}$/)
+    if (field) return { type: 'field' as const, fieldId: field[1] }
+    const blank = p.match(/^\[\[([a-zA-Z0-9_-]+)::([^\]]*)\]\]$/)
+    if (blank) return { type: 'blank' as const, blankId: blank[1], blankLabel: blank[2] }
+    return { type: 'text' as const, value: p }
+>>>>>>> origin/main
   })
 }
 
 function DynamicTextEditor({
   tokens,
+<<<<<<< HEAD
   fillableFields,
   onChange,
 }: {
@@ -222,18 +311,77 @@ function DynamicTextEditor({
     // Put the cursor right after what was just inserted, so the person can
     // keep typing without having to click back into the textarea.
     const cursor = start + placeholder.length
+=======
+  blankStyles,
+  fillableFields,
+  allowBlanks,
+  onChange,
+}: {
+  tokens: DynamicTextToken[] | undefined
+  blankStyles: Record<string, TextStyle> | undefined
+  fillableFields: FormElement[]
+  allowBlanks: boolean
+  onChange: (patch: Partial<FormElement>) => void
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  function insertMarker(marker: string) {
+    const el = textareaRef.current
+    if (!el) return
+    const start = el.selectionStart ?? el.value.length
+    const end = el.selectionEnd ?? el.value.length
+    const newValue = el.value.slice(0, start) + marker + el.value.slice(end)
+    el.value = newValue
+    onChange({ tokens: templateToTokens(newValue) })
+    // Put the cursor right after what was just inserted, so the person can
+    // keep typing without having to click back into the textarea.
+    const cursor = start + marker.length
+>>>>>>> origin/main
     requestAnimationFrame(() => {
       el.focus()
       el.setSelectionRange(cursor, cursor)
     })
   }
 
+<<<<<<< HEAD
   return (
     <Field label="Text template" hint="Use {{field_id}} to insert a field value, or click a field below to insert it.">
+=======
+  function insertField(fieldValue: string) {
+    insertMarker(`{{${fieldValue}}}`)
+  }
+
+  function insertBlank() {
+    const label = window.prompt('Label for this blank (shown to whoever fills out the form):')
+    if (!label || !label.trim()) return
+    const blankId = generateId('blank')
+    // No style is seeded here on purpose: a new blank starts with no
+    // styling of its own, so it inherits the surrounding paragraph's font,
+    // size, weight and decoration and blends seamlessly into the text.
+    // B/I/U below are opt-in per blank for anyone who wants one to stand out.
+    insertMarker(`[[${blankId}::${label.trim()}]]`)
+  }
+
+  function toggleBlankStyle(blankId: string, key: 'bold' | 'italic' | 'underline') {
+    const current: TextStyle = blankStyles?.[blankId] ?? {}
+    onChange({ blankStyles: { ...blankStyles, [blankId]: { ...current, [key]: !current[key] } } })
+  }
+
+  return (
+    <Field
+      label="Text template"
+      hint={
+        allowBlanks
+          ? 'Use {{field_id}} for a field value, or click a field/blank below to insert it.'
+          : 'Use {{field_id}} to insert a field value, or click a field below to insert it.'
+      }
+    >
+>>>>>>> origin/main
       <textarea
         ref={textareaRef}
         className={`${inputCls} h-28 font-mono text-[12px]`}
         defaultValue={tokensToTemplate(tokens)}
+<<<<<<< HEAD
         onBlur={e => onChange(templateToTokens(e.target.value))}
       />
       <div>
@@ -251,6 +399,80 @@ function DynamicTextEditor({
             </button>
           ))}
         </div>
+=======
+        onBlur={e => onChange({ tokens: templateToTokens(e.target.value) })}
+      />
+      {allowBlanks && (
+        <div>
+          <span className="block text-[10.5px] text-ink/40 mt-2 mb-1">Fillable blanks</span>
+          <div className="space-y-1.5">
+            {(tokens ?? [])
+              .filter(t => t.type === 'blank')
+              .map(t => {
+                const style: TextStyle = (t.blankId ? blankStyles?.[t.blankId] : undefined) ?? {}
+                return (
+                  <div
+                    key={t.blankId}
+                    className="flex items-center gap-2 px-2 py-1 rounded-sm2 border border-bottle-600/30 bg-bottle-50"
+                  >
+                    <span className="text-[11px] text-bottle-700 flex-1 truncate">{t.blankLabel}</span>
+                    {(['bold', 'italic', 'underline'] as const).map(key => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => t.blankId && toggleBlankStyle(t.blankId, key)}
+                        title={key[0].toUpperCase() + key.slice(1)}
+                        className={`w-5 h-5 shrink-0 rounded-sm2 text-[11px] flex items-center justify-center transition-colors ${
+                          style[key]
+                            ? 'bg-bottle-600 text-white'
+                            : 'bg-white text-ink/40 border border-line2 hover:border-bottle-600'
+                        } ${key === 'bold' ? 'font-bold' : key === 'italic' ? 'italic' : 'underline'}`}
+                      >
+                        {key === 'bold' ? 'B' : key === 'italic' ? 'I' : 'U'}
+                      </button>
+                    ))}
+                  </div>
+                )
+              })}
+            <Button variant="secondary" className="py-1" onClick={insertBlank}>
+              + Add blank
+            </Button>
+          </div>
+          <p className="mt-1 text-[10.5px] text-ink/35">
+            Each blank shows up as its own input in the fill-form sidebar, and whatever's typed
+            substitutes back into the paragraph right where you placed it. B/I/U are optional per blank.
+          </p>
+        </div>
+      )}
+      <div>
+        <span className="block text-[10.5px] text-ink/40 mt-3 mb-1">Database fields</span>
+        {(
+          [
+            { title: 'Barangay & primary designations', match: (f: DatabaseFieldOption) => !f.group || f.group === 'Primary', open: true },
+            { title: 'Secondary designations (BAC)', match: (f: DatabaseFieldOption) => f.group === 'Secondary', open: false },
+            { title: 'Tertiary designations (Committees)', match: (f: DatabaseFieldOption) => f.group === 'Tertiary', open: false },
+          ] as const
+        ).map(section => (
+          <details key={section.title} open={section.open} className="mb-1.5 group">
+            <summary className="cursor-pointer text-[11px] text-ink/55 hover:text-ink select-none py-0.5">
+              {section.title}
+            </summary>
+            <div className="flex flex-wrap gap-1.5 mt-1.5">
+              {DATABASE_FIELDS.filter(section.match).map(f => (
+                <button
+                  key={f.value}
+                  type="button"
+                  onClick={() => insertField(f.value)}
+                  title={`Insert {{${f.value}}}`}
+                  className="focus-ring text-[11px] font-mono px-2 py-1 rounded-sm2 border border-line2 bg-paper hover:border-bottle-600 hover:bg-bottle-50 hover:text-bottle-700 transition-colors text-left"
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </details>
+        ))}
+>>>>>>> origin/main
       </div>
       <div>
         <span className="block text-[10.5px] text-ink/40 mt-3 mb-1">

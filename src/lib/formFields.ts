@@ -19,6 +19,43 @@ export function getFillableInputElements(elements: FormElement[]): FormElement[]
       (e.source === 'input' || e.type === 'checkbox') &&
       e.type !== 'table' &&
       e.type !== 'static_text' &&
+<<<<<<< HEAD
       e.type !== 'section_heading'
   )
 }
+=======
+      e.type !== 'section_heading' &&
+      // Dynamic Text and Rich Text are compound paragraph elements, not
+      // single-value inputs — Dynamic Text is read-only/computed, and Rich
+      // Text's actual fillable content lives in its embedded blanks
+      // (collected separately by getBlankFields), not the element itself.
+      e.type !== 'dynamic_text' &&
+      e.type !== 'rich_text'
+  )
+}
+
+export interface BlankField {
+  id: string
+  label: string
+}
+
+/**
+ * Fillable blanks embedded inside Rich Text elements' paragraphs (via the
+ * "+ Add blank" button in the builder) — these aren't top-level elements,
+ * they live nested inside an element's `tokens`, so they need their own
+ * collection pass rather than showing up in getFillableInputElements.
+ * Scoped to page 1 for the same reason as above.
+ */
+export function getBlankFields(elements: FormElement[]): BlankField[] {
+  const blanks: BlankField[] = []
+  for (const el of elements) {
+    if (el.page !== 1 || !el.tokens) continue
+    for (const t of el.tokens) {
+      if (t.type === 'blank' && t.blankId) {
+        blanks.push({ id: t.blankId, label: t.blankLabel || 'Blank' })
+      }
+    }
+  }
+  return blanks
+}
+>>>>>>> origin/main

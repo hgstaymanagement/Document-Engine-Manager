@@ -1,12 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+<<<<<<< HEAD
 import type { FormElement, FieldType, FormVersion } from '../../lib/types'
 import { resolveDatabaseFieldFromPalette } from '../../lib/databaseFields'
+=======
+import type { FormElement, FieldType, FormVersion, BorderPreset } from '../../lib/types'
+>>>>>>> origin/main
 import { getPageGeometry, resolveCollision, clampToGrid } from '../../lib/pageGeometry'
 import { DEFAULT_PARAGRAPH_STYLE } from '../../lib/paragraphStyle'
 import { getFillableInputElements } from '../../lib/formFields'
 import { generateId } from '../../lib/uniqueId'
+<<<<<<< HEAD
 import { useAppData } from '../../lib/dataStore'
+=======
+import { useAirtableData } from '../../lib/airtableStore'
+>>>>>>> origin/main
 import { Button, StatusPill } from '../../components/ui'
 import DocCanvas from './DocCanvas'
 import Inspector from './Inspector'
@@ -41,6 +49,10 @@ const PALETTE: { group: string; items: { type: FieldType; label: string }[] }[] 
       { type: 'static_text', label: 'Static Text' },
       { type: 'section_heading', label: 'Section Heading' },
       { type: 'dynamic_text', label: 'Dynamic Text' },
+<<<<<<< HEAD
+=======
+      { type: 'rich_text', label: 'Rich Text (with fillable blanks)' },
+>>>>>>> origin/main
       { type: 'signature', label: 'Signature' },
       { type: 'printed_name', label: 'Printed Name' },
       { type: 'position', label: 'Position' },
@@ -56,6 +68,7 @@ export default function FormBuilder() {
   const { formId } = useParams()
   const navigate = useNavigate()
   const isNew = formId === 'new'
+<<<<<<< HEAD
   const { getForm, updateForm, createForm, createNewVersion: createNewVersionInStore } = useAppData()
 
   // A brand-new form must exist as a real database record before it has an
@@ -63,6 +76,15 @@ export default function FormBuilder() {
   // other route (Preview, admin Submissions, etc.) can then rely on the URL
   // id always being a real Form record, instead of reconciling a synthetic
   // client-generated id against the database later.
+=======
+  const { getForm, updateForm, createForm, createNewVersion: createNewVersionInStore } = useAirtableData()
+
+  // A brand-new form must exist as a real Airtable record before it has an
+  // id, so we create it once on mount and redirect to its real id — every
+  // other route (Preview, admin Submissions, etc.) can then rely on the URL
+  // id always being a real Form record, instead of reconciling a synthetic
+  // client-generated id against Airtable later.
+>>>>>>> origin/main
   useEffect(() => {
     if (!isNew) return
     let cancelled = false
@@ -94,7 +116,10 @@ export default function FormBuilder() {
   const safeVersionIdx = Math.min(versionIdx, form.versions.length - 1)
   const version = form.versions[safeVersionIdx]
   const elements = version.elements.filter(e => e.page === page)
+<<<<<<< HEAD
   const pageCount = Math.max(1, page, ...version.elements.map(e => e.page))
+=======
+>>>>>>> origin/main
   const selected = version.elements.find(e => e.id === selectedId) ?? null
 
   function updateVersion(mutator: (v: FormVersion) => FormVersion) {
@@ -108,8 +133,13 @@ export default function FormBuilder() {
   function addElement(type: FieldType, label: string) {
     const maxY = Math.max(0, ...elements.map(e => e.y + e.h))
     const isDb = label.includes('(database)')
+<<<<<<< HEAD
     const w = type === 'section_heading' || type === 'static_text' || type === 'table' || type === 'dynamic_text' ? 12 : 6
     const h = type === 'table' ? 4 : type === 'dynamic_text' ? 2 : 1
+=======
+    const w = type === 'section_heading' || type === 'static_text' || type === 'table' || type === 'dynamic_text' || type === 'rich_text' ? 12 : 6
+    const h = type === 'table' ? 4 : type === 'dynamic_text' || type === 'rich_text' ? 2 : 1
+>>>>>>> origin/main
     const { maxRows } = getPageGeometry(version.page)
     const placement = resolveCollision(
       { x: 0, y: maxY, w, h },
@@ -126,7 +156,11 @@ export default function FormBuilder() {
       w,
       h,
       page,
+<<<<<<< HEAD
       databaseField: isDb ? resolveDatabaseFieldFromPalette(label) : undefined,
+=======
+      databaseField: isDb ? label.replace(' (database)', '').toLowerCase().replace(/\s+/g, '_') : undefined,
+>>>>>>> origin/main
       options: type === 'dropdown' || type === 'radio' ? ['Option A', 'Option B'] : undefined,
       columns:
         type === 'table'
@@ -136,9 +170,20 @@ export default function FormBuilder() {
               { id: 'c3', label: 'Amount', width: 4, type: 'currency', paragraphStyle: { ...DEFAULT_PARAGRAPH_STYLE, align: 'right' } },
             ]
           : undefined,
+<<<<<<< HEAD
       tokens: type === 'dynamic_text' ? [{ type: 'text', value: 'Enter dynamic text…' }] : undefined,
       paragraphStyle:
         type === 'dynamic_text' || type === 'static_text'
+=======
+      tokens:
+        type === 'dynamic_text'
+          ? [{ type: 'text', value: 'Enter dynamic text…' }]
+          : type === 'rich_text'
+            ? [{ type: 'text', value: 'Enter text, then use "+ Add blank" to embed a fillable field…' }]
+            : undefined,
+      paragraphStyle:
+        type === 'dynamic_text' || type === 'rich_text' || type === 'static_text'
+>>>>>>> origin/main
           ? { ...DEFAULT_PARAGRAPH_STYLE }
           : type === 'section_heading'
             ? { ...DEFAULT_PARAGRAPH_STYLE, align: 'center' } // headings default to centered, matching prior behavior
@@ -169,6 +214,7 @@ export default function FormBuilder() {
     setSelectedId(null)
   }
 
+<<<<<<< HEAD
   function deletePage() {
     if (pageCount <= 1) return
     const elementCount = elements.length
@@ -187,6 +233,8 @@ export default function FormBuilder() {
     setPage(Math.max(1, page - 1))
   }
 
+=======
+>>>>>>> origin/main
   function setPageLayout(patch: Partial<FormVersion['page']>) {
     updateVersion(v => ({ ...v, page: { ...v.page, ...patch } }))
   }
@@ -265,7 +313,11 @@ export default function FormBuilder() {
         <div className="flex-1 overflow-auto py-10 px-6">
           <div className="flex justify-center mb-4">
             <span className="text-[12px] text-ink/50 self-center mr-2">Page</span>
+<<<<<<< HEAD
             {Array.from({ length: pageCount }, (_, i) => i + 1).map(p => (
+=======
+            {[1, 2].map(p => (
+>>>>>>> origin/main
               <button
                 key={p}
                 onClick={() => setPage(p)}
@@ -275,12 +327,17 @@ export default function FormBuilder() {
               </button>
             ))}
             <button
+<<<<<<< HEAD
               onClick={() => setPage(pageCount + 1)}
+=======
+              onClick={() => setPage(p => p + 1)}
+>>>>>>> origin/main
               className="w-7 h-7 rounded-sm2 text-[14px] border border-line bg-white hover:bg-paper text-ink/50 ml-0.5"
               title="Add page"
             >
               +
             </button>
+<<<<<<< HEAD
             <button
               onClick={deletePage}
               disabled={pageCount === 1}
@@ -289,6 +346,8 @@ export default function FormBuilder() {
             >
               Delete page
             </button>
+=======
+>>>>>>> origin/main
           </div>
           {/* Centered with margin (not flex align-items), since centering an
               oversized child with align-items inside an overflow:auto flex
@@ -399,3 +458,22 @@ function PageSettings({
   )
 }
 
+<<<<<<< HEAD
+=======
+export function borderClass(preset?: BorderPreset) {
+  switch (preset) {
+    case 'outside':
+    case 'all':
+    case 'section_box':
+      return 'border border-ink/70'
+    case 'table_grid':
+      return 'border border-ink/70'
+    case 'top_bottom':
+      return 'border-t border-b border-ink/70'
+    case 'bottom_only':
+      return 'border-b border-ink/70'
+    default:
+      return ''
+  }
+}
+>>>>>>> origin/main

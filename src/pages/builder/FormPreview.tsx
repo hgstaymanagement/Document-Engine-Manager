@@ -1,5 +1,9 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
+<<<<<<< HEAD
 import { useAppData } from '../../lib/dataStore'
+=======
+import { useAirtableData } from '../../lib/airtableStore'
+>>>>>>> origin/main
 import DocumentRender from '../../components/DocumentRender'
 import { Button } from '../../components/ui'
 
@@ -7,7 +11,11 @@ export default function FormPreview() {
   const { formId } = useParams()
   const navigate = useNavigate()
   const location = useLocation() as { state?: { versionIdx?: number } }
+<<<<<<< HEAD
   const { getForm } = useAppData()
+=======
+  const { getForm } = useAirtableData()
+>>>>>>> origin/main
 
   // Always read the form live from the shared store, so edits made in the
   // builder are reflected here even without relying on router state.

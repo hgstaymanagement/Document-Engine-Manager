@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './lib/auth'
+<<<<<<< HEAD
 import { DataProvider } from './lib/dataStore'
 import { isSupabaseConfigured } from './lib/supabaseClient'
 import ProtectedRoute from './lib/ProtectedRoute'
@@ -7,6 +8,12 @@ import ProtectedRoute from './lib/ProtectedRoute'
 import LoginPortal from './pages/LoginPortal'
 import AdminLogin from './pages/AdminLogin'
 import ClientLogin from './pages/ClientLogin'
+=======
+import { AirtableProvider, useAirtableData } from './lib/airtableStore'
+import ProtectedRoute from './lib/ProtectedRoute'
+
+import Login from './pages/Login'
+>>>>>>> origin/main
 
 import AdminLayout from './layouts/AdminLayout'
 import Overview from './pages/admin/Overview'
@@ -25,6 +32,7 @@ import MySubmissions from './pages/client/MySubmissions'
 import SubmissionEditor from './pages/SubmissionEditor'
 
 export default function App() {
+<<<<<<< HEAD
   if (!isSupabaseConfigured()) {
     return <ConfigMissingScreen />
   }
@@ -110,10 +118,18 @@ export default function App() {
           </Routes>
         </BrowserRouter>
       </DataProvider>
+=======
+  return (
+    <AuthProvider>
+      <AirtableProvider>
+        <DataGate />
+      </AirtableProvider>
+>>>>>>> origin/main
     </AuthProvider>
   )
 }
 
+<<<<<<< HEAD
 function ConfigMissingScreen() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-canvas px-6">
@@ -129,5 +145,112 @@ function ConfigMissingScreen() {
         </p>
       </div>
     </div>
+=======
+/** Blocks rendering the app until the initial Airtable fetch settles. */
+function DataGate() {
+  const { loading, error, refresh } = useAirtableData()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-canvas">
+        <p className="text-[13.5px] text-ink/50">MAGHULAT TABI…</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-canvas px-6">
+        <div className="max-w-md text-center">
+          <h1 className="text-[16px] font-semibold mb-2 text-clay">Couldn't load data from Airtable</h1>
+          <p className="text-[13px] text-ink/60 leading-relaxed font-mono break-words">{error}</p>
+          <button
+            onClick={refresh}
+            className="focus-ring mt-5 bg-bottle-600 hover:bg-bottle-700 text-white text-[13px] font-medium px-4 py-2 rounded-sm2"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Login />} />
+
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Overview />} />
+          <Route path="clients" element={<Clients />} />
+          <Route path="barangays" element={<Barangays />} />
+          <Route path="forms" element={<Forms />} />
+          <Route path="submissions" element={<Submissions />} />
+        </Route>
+
+        <Route
+          path="/admin/forms/:formId"
+          element={
+            <ProtectedRoute role="admin">
+              <FormBuilder />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/forms/:formId/preview"
+          element={
+            <ProtectedRoute role="admin">
+              <FormPreview />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/submissions/:submissionId"
+          element={
+            <ProtectedRoute role="admin">
+              <SubmissionEditor mode="admin" />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/client"
+          element={
+            <ProtectedRoute role="client">
+              <ClientLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="new" element={<NewForm />} />
+          <Route path="submissions" element={<MySubmissions />} />
+        </Route>
+
+        <Route
+          path="/client/fill/:formId/:barangayId"
+          element={
+            <ProtectedRoute role="client">
+              <SubmissionEditor mode="client" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/client/fill/:formId/:barangayId/:submissionId"
+          element={
+            <ProtectedRoute role="client">
+              <SubmissionEditor mode="client" />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
+>>>>>>> origin/main
   )
 }

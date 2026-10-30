@@ -1,10 +1,18 @@
 import { useState } from 'react'
+<<<<<<< HEAD
 import { useAppData } from '../../lib/dataStore'
+=======
+import { useAirtableData } from '../../lib/airtableStore'
+>>>>>>> origin/main
 import type { Client, Barangay } from '../../lib/types'
 import { PageHeader, Button, StatusPill, LedgerTable, Row, Cell, Field, inputCls } from '../../components/ui'
 
 export default function Clients() {
+<<<<<<< HEAD
   const { clients, barangays, createClient, updateClientBarangays, updateClientPassword, toggleClientActive } = useAppData()
+=======
+  const { clients, barangays, createClient, updateClientBarangays, updateClientPassword, toggleClientActive } = useAirtableData()
+>>>>>>> origin/main
   const [editing, setEditing] = useState<Client | null>(null)
   const [settingPassword, setSettingPassword] = useState<Client | null>(null)
   const [creating, setCreating] = useState(false)
@@ -48,7 +56,11 @@ export default function Clients() {
                 </Cell>
                 <Cell className="text-right space-x-1">
                   <Button variant="ghost" onClick={() => setSettingPassword(c)}>
+<<<<<<< HEAD
                     Reset password
+=======
+                    {c.password ? 'Reset password' : 'Set password'}
+>>>>>>> origin/main
                   </Button>
                   <Button variant="ghost" onClick={() => setEditing(c)}>
                     Manage
@@ -146,7 +158,11 @@ function PasswordDrawer({
   const mismatch = password.length > 0 && confirm.length > 0 && password !== confirm
 
   return (
+<<<<<<< HEAD
     <Drawer title={`Reset password — ${client.name}`} onClose={onClose}>
+=======
+    <Drawer title={`${client.password ? 'Reset' : 'Set'} password — ${client.name}`} onClose={onClose}>
+>>>>>>> origin/main
       <p className="text-[12.5px] text-ink/50 mb-4">
         {client.name} will use this password together with their Login ID (
         <span className="font-mono">{client.loginId}</span>) to sign in.

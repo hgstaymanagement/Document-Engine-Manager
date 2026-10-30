@@ -20,7 +20,17 @@ export function splitTokensIntoParagraphs(tokens: DynamicTextToken[] | undefined
   const paragraphs: DynamicTextToken[][] = [[]]
 
   for (const t of tokens) {
+<<<<<<< HEAD
     if (t.type === 'field') {
+=======
+    // Field references and blanks are inline, self-contained tokens — pass
+    // them straight through into the current paragraph. Only plain text
+    // tokens carry the raw \n characters that mark a paragraph boundary;
+    // reading t.value on a blank token (which stores its data in blankId /
+    // blankLabel, not value) would read undefined and silently vanish the
+    // whole token, which is exactly what was happening before.
+    if (t.type === 'field' || t.type === 'blank') {
+>>>>>>> origin/main
       paragraphs[paragraphs.length - 1].push(t)
       continue
     }

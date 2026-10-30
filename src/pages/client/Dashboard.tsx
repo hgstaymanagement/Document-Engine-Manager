@@ -1,11 +1,19 @@
 import { Link } from 'react-router-dom'
+<<<<<<< HEAD
 import { useAppData } from '../../lib/dataStore'
+=======
+import { useAirtableData } from '../../lib/airtableStore'
+>>>>>>> origin/main
 import { useAuth } from '../../lib/auth'
 import { StatusPill, Button } from '../../components/ui'
 
 export default function Dashboard() {
   const { session } = useAuth()
+<<<<<<< HEAD
   const { barangays, clients, submissions, formName, barangayName } = useAppData()
+=======
+  const { barangays, clients, submissions, formName, barangayName } = useAirtableData()
+>>>>>>> origin/main
   const client = clients.find(c => c.id === session?.clientId)
   const assigned = barangays.filter(b => client?.barangayIds.includes(b.id))
   const mine = submissions.filter(s => s.clientId === client?.id)

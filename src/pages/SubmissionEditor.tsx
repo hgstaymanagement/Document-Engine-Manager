@@ -1,10 +1,15 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+<<<<<<< HEAD
 import { useAppData } from '../lib/dataStore'
+=======
+import { useAirtableData } from '../lib/airtableStore'
+>>>>>>> origin/main
 import { useAuth } from '../lib/auth'
 import type { FormElement, Submission, TableColumn } from '../lib/types'
 import DocumentRender, { type RenderData } from '../components/DocumentRender'
 import { recomputeRow, sumColumn, formatSum } from '../lib/formula'
+<<<<<<< HEAD
 import { getFillableInputElements } from '../lib/formFields'
 import { textStyleToCss } from '../lib/textStyle'
 import { Button, Field, inputCls, StatusPill } from '../components/ui'
@@ -16,6 +21,24 @@ import { Button, Field, inputCls, StatusPill } from '../components/ui'
 function toSnakeKeys(obj: Record<string, string>) {
   const out: Record<string, string> = {}
   for (const [k, v] of Object.entries(obj)) out[k.toLowerCase().replace(/\s+/g, '_')] = v
+=======
+import { getFillableInputElements, getBlankFields } from '../lib/formFields'
+import { slugifyDesignation } from '../lib/designations'
+import { textStyleToCss } from '../lib/textStyle'
+import { Button, Field, inputCls, StatusPill } from '../components/ui'
+
+/** Signature/database-field lookups use slugified ids (e.g. "punong_barangay",
+ * or "committee_on_peace_and_order_human_rights" for designations with
+ * slashes/commas in their label), but officialSnapshotFor() returns
+ * human-readable designation names (e.g. "Punong Barangay") to match how
+ * they're stored in Airtable. Normalize once here, using the exact same
+ * slugifier the Dynamic/Rich Text binding picker uses to generate its field
+ * ids (src/lib/designations.ts) — so a designation's snapshot key can never
+ * drift from the {{field_id}} someone actually typed to reference it. */
+function toSnakeKeys(obj: Record<string, string>) {
+  const out: Record<string, string> = {}
+  for (const [k, v] of Object.entries(obj)) out[slugifyDesignation(k)] = v
+>>>>>>> origin/main
   return out
 }
 
@@ -23,7 +46,11 @@ export default function SubmissionEditor({ mode }: { mode: 'client' | 'admin' })
   const { formId, barangayId: routeBrgy, submissionId } = useParams()
   const navigate = useNavigate()
   const { session } = useAuth()
+<<<<<<< HEAD
   const { forms, submissions, barangays, barangayName, officialSnapshotFor, createSubmission, updateSubmission } = useAppData()
+=======
+  const { forms, submissions, barangays, barangayName, officialSnapshotFor, createSubmission, updateSubmission } = useAirtableData()
+>>>>>>> origin/main
 
   const existing = submissionId ? submissions.find(s => s.id === submissionId) : undefined
   const form = forms.find(f => f.id === (existing?.formId ?? formId)) ?? forms[0]
@@ -41,7 +68,11 @@ export default function SubmissionEditor({ mode }: { mode: 'client' | 'admin' })
   })
   const [tableRows, setTableRows] = useState<Record<string, Record<string, string>[]>>(existing?.tables ?? {})
 
+<<<<<<< HEAD
   // Title-case snapshot (matching the stored display convention) for new
+=======
+  // Title-case snapshot (matches Airtable's stored convention) for new
+>>>>>>> origin/main
   // submissions; existing ones just reuse whatever was frozen at fill time.
   const officialSnapshotTitleCase = existing?.officialSnapshot ?? officialSnapshotFor(barangayId)
   const officialSnapshotForRender = useMemo(() => toSnakeKeys(officialSnapshotTitleCase), [officialSnapshotTitleCase])
@@ -56,12 +87,23 @@ export default function SubmissionEditor({ mode }: { mode: 'client' | 'admin' })
   )
 
   const inputElements = getFillableInputElements(version.elements)
+<<<<<<< HEAD
+=======
+  const blankFields = getBlankFields(version.elements)
+>>>>>>> origin/main
   const tableElements = version.elements.filter(e => e.type === 'table')
 
   function setField(el: FormElement, v: string) {
     setValues(vals => ({ ...vals, [el.id]: v }))
   }
 
+<<<<<<< HEAD
+=======
+  function setBlankValue(blankId: string, v: string) {
+    setValues(vals => ({ ...vals, [blankId]: v }))
+  }
+
+>>>>>>> origin/main
   function addRow(tableId: string, columns: TableColumn[]) {
     const blank = Object.fromEntries(columns.map(c => [c.id, '']))
     setTableRows(tr => ({
@@ -157,13 +199,30 @@ export default function SubmissionEditor({ mode }: { mode: 'client' | 'admin' })
         <div className="w-96 shrink-0 border-r border-line bg-white overflow-y-auto p-6 print:hidden">
           <h2 className="text-[13px] font-medium mb-1">Form fields</h2>
           <p className="text-[12px] text-ink/45 mb-4">
+<<<<<<< HEAD
             Barangay and official information is auto-filled from Supabase and cannot be edited here.
+=======
+            Barangay and official information is auto-filled from Airtable and cannot be edited here.
+>>>>>>> origin/main
           </p>
           <div className="space-y-4">
             {inputElements.map(el => (
               <ElementInput key={el.id} el={el} value={values[el.id] ?? ''} onChange={v => setField(el, v)} />
             ))}
 
+<<<<<<< HEAD
+=======
+            {blankFields.map(b => (
+              <Field key={b.id} label={b.label}>
+                <input
+                  className={inputCls}
+                  value={values[b.id] ?? ''}
+                  onChange={e => setBlankValue(b.id, e.target.value)}
+                />
+              </Field>
+            ))}
+
+>>>>>>> origin/main
             {tableElements.map(tel => {
               const summarizeCols = (tel.columns ?? []).filter(c => c.summarize)
               const rows = tableRows[tel.id] ?? []

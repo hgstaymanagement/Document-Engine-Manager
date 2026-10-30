@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "name": "liga-bulan-document-manager",
+=======
+  "name": "procurement-frontend",
+>>>>>>> origin/main
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,6 +11,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+<<<<<<< HEAD
     "preview": "vite preview",
     "migrate:airtable": "node scripts/migrate-airtable-to-supabase.mjs",
     "reset:admin-password": "node scripts/reset-supabase-admin-password.mjs",
@@ -14,6 +19,11 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
+=======
+    "preview": "vite preview"
+  },
+  "dependencies": {
+>>>>>>> origin/main
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.3"

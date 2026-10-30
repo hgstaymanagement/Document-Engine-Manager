@@ -1,10 +1,18 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+<<<<<<< HEAD
 import { useAppData } from '../../lib/dataStore'
 import { PageHeader, StatusPill, LedgerTable, Row, Cell, Button, inputCls } from '../../components/ui'
 
 export default function Submissions() {
   const { submissions: list, forms, barangays, clients, barangayName, formName, clientName, deleteSubmission } = useAppData()
+=======
+import { useAirtableData } from '../../lib/airtableStore'
+import { PageHeader, StatusPill, LedgerTable, Row, Cell, Button, inputCls } from '../../components/ui'
+
+export default function Submissions() {
+  const { submissions: list, forms, barangays, clients, barangayName, formName, clientName, deleteSubmission } = useAirtableData()
+>>>>>>> origin/main
   const [formFilter, setFormFilter] = useState('')
   const [brgyFilter, setBrgyFilter] = useState('')
   const [clientFilter, setClientFilter] = useState('')
